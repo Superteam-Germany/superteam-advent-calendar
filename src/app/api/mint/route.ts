@@ -28,6 +28,9 @@ import fs from "fs";
 import { Umi, Pda, PublicKey } from "@metaplex-foundation/umi";
 import { dasApi } from "@metaplex-foundation/digital-asset-standard-api";
 import { isWalletWhitelisted } from '@/utils/whitelisting';
+import { db } from '@/db';
+import { mints } from '@/db/schema';
+import { v4 as uuidv4 } from 'uuid';
 
 // https://devnet.irys.xyz/ 
 
@@ -53,7 +56,7 @@ export async function POST(req: NextRequest) {
         { status: 403 }
       );
     }
-
+ 
     if (!doorNumber || doorNumber < 1 || doorNumber > 24) {
       return NextResponse.json(
         { error: 'Invalid door number' },
@@ -71,34 +74,70 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const existingMint = await db.query.mints.findFirst({
+      where: (mints, { and, eq }) => and(
+        eq(mints.walletAddress, publicKey),
+        eq(mints.doorNumber, doorNumber)
+      )
+    });
+
+    if (existingMint) {
+      return NextResponse.json(
+        { error: `You have already minted Door #${doorNumber}` },
+        { status: 400 }
+      );
+    }
+
+
     const umi = createUmi('https://api.devnet.solana.com')
-        .use(mplBubblegum())
-        .use(mplTokenMetadata())
-        .use(dasApi())
-        .use(
-            irysUploader({
-                address: 'https://devnet.irys.xyz',
-            })
-        );
-        const walletFile = fs.readFileSync('./.keys/adventcalendar-wallet.json', 'utf8');
-        const walletData = JSON.parse(walletFile);
-    
-        // Decode the Base64-encoded private key
-        const secretKeyBuffer = Buffer.from(walletData.privateKey, 'base64');
-        const secretKeyUint8Array = new Uint8Array(secretKeyBuffer);
-    
-        // Create the keypair from the secret key
-        const keypair = umi.eddsa.createKeypairFromSecretKey(secretKeyUint8Array);
-    
-        // Set the keypair as the signer
-        umi.use(keypairIdentity(keypair));
+      .use(mplBubblegum())
+      .use(mplTokenMetadata())
+      .use(dasApi())
+      .use(
+        irysUploader({
+            address: 'https://devnet.irys.xyz',
+        })
+    );
+    const walletFile = fs.readFileSync('./.keys/adventcalendar-wallet.json', 'utf8');
+    const walletData = JSON.parse(walletFile);
+
+    // Decode the Base64-encoded private key
+    const secretKeyBuffer = Buffer.from(walletData.privateKey, 'base64');
+    const secretKeyUint8Array = new Uint8Array(secretKeyBuffer);
+
+    // Create the keypair from the secret key
+    const keypair = umi.eddsa.createKeypairFromSecretKey(secretKeyUint8Array);
+
+    // Set the keypair as the signer
+    umi.use(keypairIdentity(keypair));
 
     // Get the correct image URL for this door
     const imageUrl = getDoorImageUrl(doorNumber);
 
     const nftMetadataUri = await createNftMetadata(doorNumber, imageUrl);
 
-    const res = await mintNft(umi, nftMetadataUri, publicKey, doorNumber);
+    const assetId = await mintNft(umi, nftMetadataUri, publicKey, doorNumber);
+    console.log("🚀 ~ POST ~ assetId:", assetId.toString())
+
+    // Record the mint in the database
+    try {
+      await db.insert(mints).values({
+        id: uuidv4(),
+        walletAddress: publicKey,
+        doorNumber,
+        nftAddress: assetId.toString(),
+        isEligibleForRaffle: true,
+      });
+    } catch (error: any) {
+      // Handle unique constraint violation
+      if (error.code === 'ER_DUP_ENTRY') {
+        return NextResponse.json(
+          { error: `You have already minted Door #${doorNumber}` },
+          { status: 400 }
+        );
+      }
+      throw error;
+    }
 
     return NextResponse.json({ 
       success: true, 
@@ -121,7 +160,13 @@ export async function POST(req: NextRequest) {
  * @param imageUrl 
  * @returns 
  */
-const createNftMetadata = async (doorNumber: number, imageUrl: string) => {    
+const createNftMetadata = async (doorNumber: number, imageUrl: string) => {   
+  
+  const collectionPubkey = process.env.COLLECTION_PUBLIC_KEY;
+  console.log("🚀 ~ createNftMetadata ~ collectionPubkey:", collectionPubkey)
+  if (!collectionPubkey) {
+    throw new Error('COLLECTION_PUBLIC_KEY is not set');
+  }
 
   const umi = createUmi('https://api.devnet.solana.com')
     .use(mplBubblegum())
@@ -146,33 +191,41 @@ const createNftMetadata = async (doorNumber: number, imageUrl: string) => {
     // Set the keypair as the signer
   umi.use(keypairIdentity(keypair));
 
+  const name = `${NFT_NAME} ${doorNumber}`;
+
   const nftMetadata = {
-    name: `${NFT_NAME} ${doorNumber}`,
+    name,
     symbol: "STDE",
-    description: `SuperteamDE Advent Calendar NFT for Door ${doorNumber}`,
+    description: "SuperteamDE Advent Calendar NFT",
     image: imageUrl,
     external_url: 'https://superteamde.fun',
     attributes: [
-      { trait_type: "Year", value: "2024" },
-      { trait_type: "Day", value: `${doorNumber}` }
+      {
+        "trait_type": "Year",
+        "value": "2024"
+      },
+      {
+        "trait_type": "Day",
+        "value": doorNumber.toString()
+      }
     ],
     properties: {
       files: [
-          {
-              uri: imageUrl,
-              type: 'image/png',
-          }
+        {
+          uri: imageUrl,
+          type: 'image/png',
+        },
       ],
-      category: "image", // Add this if required for compatibility
+      category: "image",
       creators: [
-          {
-              address: umi.identity.publicKey.toString(),
-              share: 100,
-          },
-      ],
-    },
-  };          
-      
+        {
+          address: umi.identity.publicKey.toString(),
+          share: 100
+        }
+      ]
+    }
+  };
+
   console.log("🚀 ~ createNftMetadata ~ nftMetadata:", nftMetadata)
 
   try{
@@ -226,24 +279,24 @@ const mintNft = async (umi: Umi, nftMetadataUri: string, userPublicKey: string, 
           { address: umi.identity.publicKey, verified: true, share: 100 },
         ],
       },
-    }).sendAndConfirm(umi, { send: { commitment: 'finalized' } })
+    }).sendAndConfirm(umi, { 
+      send: { commitment: 'finalized' },
+      confirm: { commitment: 'finalized' }
+    });
 
-    //
-    // ** Fetching Asset **
-    //
+    // Add delay to ensure transaction is processed
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
-    //
-    // Here we find the asset ID of the compressed NFT using the leaf index of the mint transaction
-    // and then log the asset information.
-    //
-    console.log('Finding Asset ID...')
-    const leaf = await parseLeafFromMintV1Transaction(umi, signature)
+    console.log('Finding Asset ID...');
+    const leaf = await parseLeafFromMintV1Transaction(umi, signature);
     const assetId = findLeafAssetIdPda(umi, {
       merkleTree: merkleTreePubkey,
       leafIndex: leaf.nonce,
     })
 
     console.log('Compressed NFT Asset ID:', assetId.toString())
+
+    return assetId;
 
     // // Fetch the asset using umi rpc with DAS.
     // const asset = await umi.rpc.getAccount(assetId[0]);
