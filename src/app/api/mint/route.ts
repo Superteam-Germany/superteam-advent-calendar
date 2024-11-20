@@ -27,6 +27,7 @@ import { irysUploader } from "@metaplex-foundation/umi-uploader-irys";
 import fs from "fs";
 import { Umi, Pda, PublicKey } from "@metaplex-foundation/umi";
 import { dasApi } from "@metaplex-foundation/digital-asset-standard-api";
+import { isWalletWhitelisted } from '@/utils/whitelisting';
 
 // https://devnet.irys.xyz/ 
 
@@ -44,6 +45,14 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(`Minting request from wallet: ${publicKey}`);
+
+    const isWhitelisted = await isWalletWhitelisted(publicKey);
+    if (!isWhitelisted) {
+      return NextResponse.json(
+        { error: 'Wallet is not whitelisted' },
+        { status: 403 }
+      );
+    }
 
     if (!doorNumber || doorNumber < 1 || doorNumber > 24) {
       return NextResponse.json(
@@ -87,15 +96,9 @@ export async function POST(req: NextRequest) {
     // Get the correct image URL for this door
     const imageUrl = getDoorImageUrl(doorNumber);
 
-    // Add your minting logic here, using the imageUrl for the NFT metadata
-    console.log(`Minting NFT for door ${doorNumber} with image: ${imageUrl}`);
-    console.log(`Minting to wallet: ${publicKey}`);
-
     const nftMetadataUri = await createNftMetadata(doorNumber, imageUrl);
-    console.log("🚀 ~ POST ~ nftMetadataUri:", nftMetadataUri)
 
     const res = await mintNft(umi, nftMetadataUri, publicKey, doorNumber);
-    console.log("🚀 ~ POST ~ res:", res)
 
     return NextResponse.json({ 
       success: true, 
@@ -174,7 +177,6 @@ const createNftMetadata = async (doorNumber: number, imageUrl: string) => {
 
   try{
     const nftMetadataUri = await umi.uploader.uploadJson(nftMetadata)
-    console.log("🚀 ~ createNftMetadata ~ nftMetadataUri:", nftMetadataUri)
 
     return nftMetadataUri;
   } catch (error) {
