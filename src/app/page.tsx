@@ -5,14 +5,14 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useState } from 'react';
 
 export default function Home() {
-  const { connected } = useWallet();
+  const { connected, publicKey } = useWallet();
   const [minting, setMinting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [selectedDoor, setSelectedDoor] = useState<number | null>(null);
 
   const handleMint = async (doorNumber: number) => {
-    if (!connected) {
+    if (!connected || !publicKey) {
       setError('Please connect your wallet first');
       return;
     }
@@ -28,7 +28,10 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ doorNumber }),
+        body: JSON.stringify({ 
+          doorNumber,
+          publicKey: publicKey.toBase58() 
+        }),
       });
 
       if (!response.ok) {
