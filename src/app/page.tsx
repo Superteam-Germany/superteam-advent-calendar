@@ -3,6 +3,9 @@
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useState } from 'react';
+import Image from 'next/image';
+
+const doors = [7, 19, 3, 9, 11, 22, 5, 12, 8, 1, 16, 14, 20, 17, 24, 18, 23, 15, 13, 2, 4, 6, 21, 10];
 
 export default function Home() {
   const { connected, publicKey } = useWallet();
@@ -49,14 +52,14 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-24">
+    <main className="flex min-h-screen flex-col items-center p-8 md:p-24">
       <div className="z-10 w-full max-w-5xl">
         <div className="flex justify-end mb-8">
           <WalletMultiButton />
         </div>
 
-        <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
-          {Array.from({ length: 24 }, (_, i) => i + 1).map((doorNumber) => (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+          {doors.map((doorNumber) => (
             <button
               key={doorNumber}
               onClick={() => handleMint(doorNumber)}
@@ -67,17 +70,22 @@ export default function Home() {
                 flex
                 items-center
                 justify-center
-                text-xl
-                font-bold
                 transition-all
+                overflow-hidden
                 ${minting && selectedDoor === doorNumber
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-500 hover:bg-blue-600 hover:scale-105'
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:scale-105'
                 }
                 ${!connected ? 'opacity-50 cursor-not-allowed' : ''}
               `}
             >
-              {doorNumber}
+              <Image
+                src={`/images/door${doorNumber.toString().padStart(2, '0')}.png`}
+                alt={`Door ${doorNumber}`}
+                width={200}
+                height={200}
+                className="w-full h-full object-cover"
+              />
             </button>
           ))}
         </div>
