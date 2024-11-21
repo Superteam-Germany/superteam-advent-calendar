@@ -5,6 +5,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useState } from 'react';
 import Image from 'next/image';
 import toast, { Toaster } from 'react-hot-toast';
+import { Spinner } from '@/components/Spinner';
 
 const doors = [7, 19, 3, 9, 11, 22, 5, 12, 8, 1, 16, 14, 20, 17, 24, 18, 23, 15, 13, 2, 4, 6, 21, 10];
 
@@ -75,6 +76,17 @@ export default function Home() {
         }}
       />
       
+      {minting && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg shadow-xl">
+            <Spinner />
+            <div className="text-white text-sm mt-2 text-center">
+              Minting Door #{selectedDoor}
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="z-10 w-full max-w-5xl">
         <div className="flex justify-end mb-8">
           <WalletMultiButton />
@@ -94,10 +106,7 @@ export default function Home() {
                 justify-center
                 transition-all
                 overflow-hidden
-                ${minting && selectedDoor === doorNumber
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'hover:scale-105'
-                }
+                ${minting ? 'cursor-not-allowed' : 'hover:scale-105'}
                 ${!connected ? 'opacity-50 cursor-not-allowed' : ''}
               `}
             >
@@ -111,14 +120,6 @@ export default function Home() {
             </button>
           ))}
         </div>
-
-        {minting && (
-          <div className="mt-8 text-center">
-            <div className="text-blue-500 text-sm">
-              Minting Door #{selectedDoor}...
-            </div>
-          </div>
-        )}
       </div>
     </main>
   );
