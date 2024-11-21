@@ -4,26 +4,23 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useState } from 'react';
 import Image from 'next/image';
+import toast, { Toaster } from 'react-hot-toast';
 
 const doors = [7, 19, 3, 9, 11, 22, 5, 12, 8, 1, 16, 14, 20, 17, 24, 18, 23, 15, 13, 2, 4, 6, 21, 10];
 
 export default function Home() {
   const { connected, publicKey } = useWallet();
   const [minting, setMinting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [selectedDoor, setSelectedDoor] = useState<number | null>(null);
 
   const handleMint = async (doorNumber: number) => {
     if (!connected || !publicKey) {
-      setError('Please connect your wallet first');
+      toast.error('Please connect your wallet first');
       return;
     }
 
     try {
       setMinting(true);
-      setError(null);
-      setSuccess(false);
       setSelectedDoor(doorNumber);
 
       const response = await fetch('/api/mint', {
@@ -42,10 +39,10 @@ export default function Home() {
         throw new Error(errorData.error || 'Minting failed');
       }
 
-      const data = await response.json();
-      setSuccess(true);
+      await response.json();
+      toast.success(`Successfully minted Door #${doorNumber}!`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setMinting(false);
     }
@@ -53,6 +50,31 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center p-8 md:p-24">
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 5000,
+          style: {
+            background: '#333',
+            color: '#fff',
+            borderRadius: '8px',
+            padding: '16px',
+          },
+          success: {
+            iconTheme: {
+              primary: '#4ade80',
+              secondary: '#333',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#333',
+            },
+          },
+        }}
+      />
+      
       <div className="z-10 w-full max-w-5xl">
         <div className="flex justify-end mb-8">
           <WalletMultiButton />
@@ -90,31 +112,13 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="mt-8 text-center">
-          {error && (
-            <div className="text-red-500 text-sm mt-2">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="text-green-500 text-sm mt-2">
-              Successfully minted Door #{selectedDoor}!
-            </div>
-          )}
-
-          {!connected && (
-            <div className="text-yellow-500 text-sm mt-2">
-              Connect your wallet to mint
-            </div>
-          )}
-
-          {minting && (
-            <div className="text-blue-500 text-sm mt-2">
+        {minting && (
+          <div className="mt-8 text-center">
+            <div className="text-blue-500 text-sm">
               Minting Door #{selectedDoor}...
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </main>
   );
