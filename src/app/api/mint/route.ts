@@ -2,30 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isValidMintingDate, getMonthName } from '@/utils/dateUtils';
 import { getDoorImageUrl } from '@/utils/imageUtils';
 import {
-  createTree,
   findLeafAssetIdPda,
-  getAssetWithProof,
   mintV1,
   mplBubblegum,
   parseLeafFromMintV1Transaction,
-  verifyCollection,
 } from "@metaplex-foundation/mpl-bubblegum";
 import {
-  createNft,
   mplTokenMetadata,
 } from "@metaplex-foundation/mpl-token-metadata";
 import {
-  createGenericFile,
-  generateSigner,
   keypairIdentity,
-  percentAmount,
   publicKey,
-  sol,
 } from "@metaplex-foundation/umi";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import { irysUploader } from "@metaplex-foundation/umi-uploader-irys";
 import fs from "fs";
-import { Umi, Pda, PublicKey } from "@metaplex-foundation/umi";
+import { Umi, } from "@metaplex-foundation/umi";
 import { dasApi } from "@metaplex-foundation/digital-asset-standard-api";
 import { isWalletWhitelisted } from '@/utils/whitelisting';
 import { db } from '@/db';
@@ -52,7 +44,7 @@ export async function POST(req: NextRequest) {
     const isWhitelisted = await isWalletWhitelisted(publicKey);
     if (!isWhitelisted) {
       return NextResponse.json(
-        { error: 'Wallet is not whitelisted' },
+        { error: 'Please use the same wallet you used to mint your Superteam Germany Membership NFT.' },
         { status: 403 }
       );
     }
