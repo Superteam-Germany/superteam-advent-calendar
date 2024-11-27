@@ -26,7 +26,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 // https://devnet.irys.xyz/ 
 
-const NFT_NAME = 'SuperteamDE Door '
+const NFT_NAME = '[test]SuperteamDE Door '
 
 export async function POST(req: NextRequest) {
   try {
@@ -80,7 +80,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-
     const umi = createUmi('https://api.devnet.solana.com')
       .use(mplBubblegum())
       .use(mplTokenMetadata())
@@ -106,9 +105,9 @@ export async function POST(req: NextRequest) {
     // Get the correct image URL for this door
     const imageUrl = getDoorImageUrl(doorNumber);
 
-    const nftMetadataUri = await createNftMetadata(doorNumber, imageUrl);
+    // const nftMetadataUri = await createNftMetadata(doorNumber, imageUrl);
 
-    const assetId = await mintNft(umi, nftMetadataUri, publicKey, doorNumber);
+    const assetId = await mintNft(umi, "nftMetadataUri", publicKey, doorNumber);
     console.log("🚀 ~ POST ~ assetId:", assetId.toString())
 
     // Record the mint in the database
@@ -215,13 +214,17 @@ const createNftMetadata = async (doorNumber: number, imageUrl: string) => {
           share: 100
         }
       ]
-    }
+    },
+    seller_fee_basis_points: 0,
+    collection: null
   };
+
 
   console.log("🚀 ~ createNftMetadata ~ nftMetadata:", nftMetadata)
 
   try{
     const nftMetadataUri = await umi.uploader.uploadJson(nftMetadata)
+    console.log("🚀 ~ createNftMetadata ~ nftMetadataUri:", nftMetadataUri)
 
     return nftMetadataUri;
   } catch (error) {
@@ -264,7 +267,8 @@ const mintNft = async (umi: Umi, nftMetadataUri: string, userPublicKey: string, 
       merkleTree: merkleTreePubkey,
       metadata: {
         name: `${NFT_NAME} ${doorNumber}`,
-        uri: nftMetadataUri, 
+        symbol: "STDE2024", 
+        uri: `https://gateway.pinata.cloud/ipfs/QmWg4AVE88EmPvd8wPgcm6gVwEJAkJUYuMgFDbL1J1jytE/door${doorNumber}.png`, 
         sellerFeeBasisPoints: 0, 
         collection: { key: collectionKey, verified: false },
         creators: [
