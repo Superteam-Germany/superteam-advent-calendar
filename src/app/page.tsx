@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { useScroll, useTransform } from 'framer-motion';
 import { BlurredCard } from '@/components/blurred-card';
 import Doors from './sections/doors';
+import { ComingSoonMessage } from '@/components/ComingSoonMessage';
 
 export default function Home() {
   const { connected, publicKey, signMessage } = useWallet();
@@ -85,6 +86,12 @@ export default function Home() {
     }
   };
 
+  const isBeforeDecFirst = () => {
+    const now = new Date();
+    const decFirst = new Date('2024-12-01T00:00:00Z'); // UTC time
+    return now < decFirst;
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center p-8 md:p-24">
       <Toaster position="top-center" />
@@ -125,11 +132,17 @@ export default function Home() {
             </div>
           ) : (
             <>
-              <h2 className="text-2xl font-bold text-center m-4 mt-12">Open today's door to see if you won!</h2>
-              <p className="text-center text-sm text-gray-500 mb-12">
-                You're registered for all daily raffles. Open doors to reveal your prizes!
-              </p>
-              <Doors isRegistered={isRegistered} />
+              {isBeforeDecFirst() ? (
+                <ComingSoonMessage />
+              ) : (
+                <>
+                  <h2 className="text-2xl font-bold text-center m-4 mt-12">Open today's door to see if you won!</h2>
+                  <p className="text-center text-sm text-gray-500 mb-12">
+                    You're registered for all daily raffles. Open doors to reveal your prizes!
+                  </p>
+                  <Doors isRegistered={isRegistered} />
+                </>
+              )}
             </>
           )}
         </BlurredCard>
