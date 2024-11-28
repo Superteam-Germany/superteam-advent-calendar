@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { registrations, winners } from '@/db/schema';
+import { registrations, prizeWinners } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export async function POST(request: Request) {
@@ -26,18 +26,18 @@ export async function POST(request: Request) {
     const today = new Date().toISOString().split('T')[0];
 
     // Check if user has already won today
-    const winner = await db.query.winners.findFirst({
+    const winner = await db.query.prizeWinners.findFirst({
       where: and(
-        eq(winners.walletAddress, publicKey),
-        eq(winners.doorNumber, doorNumber),
-        eq(winners.dayDate, today)
+        eq(prizeWinners.walletAddress, publicKey),
+        eq(prizeWinners.doorNumber, doorNumber),
+        eq(prizeWinners.dayDate, today)
       )
     });
 
     if (winner) {
       return NextResponse.json({
         isWinner: true,
-        prize: winner.prize,
+        prize: winner.prizeId,
         alreadyClaimed: winner.claimed
       });
     }
@@ -47,11 +47,11 @@ export async function POST(request: Request) {
     const prize = "1 SOL";
 
     if (isWinner) {
-      await db.insert(winners).values({
+      await db.insert(prizeWinners).values({
         walletAddress: publicKey,
         doorNumber,
         dayDate: today,
-        prize
+        prizeId: prize
       });
     }
 

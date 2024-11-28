@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, integer, serial, date, unique } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, integer, serial, date, unique, uuid } from 'drizzle-orm/pg-core';
 
 export const mints = pgTable('mints', {
   id: text('id').primaryKey(),
@@ -18,16 +18,22 @@ export const registrations = pgTable('registrations', {
   isActive: boolean('is_active').default(true)
 });
 
-export const winners = pgTable('winners', {
-  id: serial('id').primaryKey(),
+export const prizes = pgTable('prizes', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  doorNumber: integer('door_number').notNull(),
+  quantity: integer('quantity').notNull(),
+  winnerMessage: text('winner_message'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+});
+
+export const prizeWinners = pgTable('prize_winners', {
+  id: uuid('id').defaultRandom().primaryKey(),
   walletAddress: text('wallet_address').references(() => registrations.walletAddress),
   doorNumber: integer('door_number'),
   dayDate: date('day_date'),
-  prize: text('prize'),
+  prizeId: uuid('prize_id').references(() => prizes.id),
   claimed: boolean('claimed').default(false),
-  claimedTx: text('claimed_tx'),
-}, (table) => {
-  return {
-    dayDoorUnique: unique().on(table.dayDate, table.doorNumber)
-  };
 }); 
