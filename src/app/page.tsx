@@ -1,7 +1,5 @@
 'use client';
 import React from 'react';
-
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -11,12 +9,10 @@ import { motion } from 'framer-motion';
 import { useScroll, useTransform } from 'framer-motion';
 import { BlurredCard } from '@/components/blurred-card';
 import Doors from './sections/doors';
-const doors = [7, 19, 3, 9, 11, 22, 5, 12, 8, 1, 16, 14, 20, 17, 24, 18, 23, 15, 13, 2, 4, 6, 21, 10];
 
 export default function Home() {
-  const { connected, publicKey } = useWallet();
+  const { connected, publicKey, signMessage } = useWallet();
   const [minting, setMinting] = useState(false);
-  const [selectedDoor, setSelectedDoor] = useState<number | null>(null);
   const [isRegistered, setIsRegistered] = useState(false);
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], ['-40%', '-0%']);
@@ -38,7 +34,7 @@ export default function Home() {
   };
 
   const handleRegister = async () => {
-    if (!connected || !publicKey) {
+    if (!connected || !publicKey || !signMessage) {
       toast.error('Please connect your wallet first');
       return;
     }
@@ -50,10 +46,10 @@ export default function Home() {
       const message = `Register for Superteam Germany Advent Calendar`;
       const encodedMessage = new TextEncoder().encode(message);
       
-      // Request signature from wallet
+      // Request signature using wallet adapter's signMessage
       let signature;
       try {
-        signature = await window.solana.signMessage(encodedMessage, "utf8");
+        signature = await signMessage(encodedMessage);
       } catch (signError) {
         toast.error('Please sign the message to verify your wallet ownership');
         return;
@@ -67,7 +63,7 @@ export default function Home() {
         body: JSON.stringify({ 
           publicKey: publicKey.toBase58(),
           message,
-          signature: Buffer.from(signature.signature).toString('base64')
+          signature: Buffer.from(signature).toString('base64')
         }),
       });
 
@@ -80,11 +76,9 @@ export default function Home() {
         throw new Error('Failed to register');
       }
 
-      const data = await response.json();
       toast.success('Successfully registered for the advent calendar!');
       setIsRegistered(true);
     } catch (err) {
-      console.error('Registration error:', err);
       toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setMinting(false);

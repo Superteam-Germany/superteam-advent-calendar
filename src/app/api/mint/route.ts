@@ -24,9 +24,7 @@ import { db } from '@/db';
 import { mints } from '@/db/schema';
 import { v4 as uuidv4 } from 'uuid';
 
-// https://devnet.irys.xyz/ 
-
-const NFT_NAME = '[test]SuperteamDE Door '
+const NFT_NAME = 'SuperteamDE Door '
 
 export async function POST(req: NextRequest) {
   try {
@@ -144,94 +142,6 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
-/**
- * Create NFT metadata
- * @param doorNumber 
- * @param imageUrl 
- * @returns 
- */
-// const createNftMetadata = async (doorNumber: number, imageUrl: string) => {   
-  
-//   const collectionPubkey = process.env.COLLECTION_PUBLIC_KEY;
-//   console.log("🚀 ~ createNftMetadata ~ collectionPubkey:", collectionPubkey)
-//   if (!collectionPubkey) {
-//     throw new Error('COLLECTION_PUBLIC_KEY is not set');
-//   }
-
-//   const umi = createUmi('https://api.devnet.solana.com')
-//     .use(mplBubblegum())
-//     .use(mplTokenMetadata())
-//     .use(dasApi())
-//     .use(
-//       irysUploader({
-//           address: 'https://devnet.irys.xyz',
-//       })
-//   );
-
-//   const walletFile = fs.readFileSync('./.keys/adventcalendar-wallet.json', 'utf8');
-//   const walletData = JSON.parse(walletFile);
-
-//   // Decode the Base64-encoded private key
-//   const secretKeyBuffer = Buffer.from(walletData.privateKey, 'base64');
-//   const secretKeyUint8Array = new Uint8Array(secretKeyBuffer);
-
-//   // Create the keypair from the secret key
-//   const keypair = umi.eddsa.createKeypairFromSecretKey(secretKeyUint8Array);
-
-//     // Set the keypair as the signer
-//   umi.use(keypairIdentity(keypair));
-
-//   const name = `${NFT_NAME} ${doorNumber}`;
-
-//   const nftMetadata = {
-//     name,
-//     symbol: "STDE",
-//     description: "SuperteamDE Advent Calendar NFT",
-//     image: imageUrl,
-//     external_url: 'https://superteamde.fun',
-//     attributes: [
-//       {
-//         "trait_type": "Year",
-//         "value": "2024"
-//       },
-//       {
-//         "trait_type": "Day",
-//         "value": doorNumber.toString()
-//       }
-//     ],
-//     properties: {
-//       files: [
-//         {
-//           uri: imageUrl,
-//           type: 'image/png',
-//         },
-//       ],
-//       category: "image",
-//       creators: [
-//         {
-//           address: umi.identity.publicKey.toString(),
-//           share: 100
-//         }
-//       ]
-//     },
-//     seller_fee_basis_points: 0,
-//     collection: null
-//   };
-
-
-//   console.log("🚀 ~ createNftMetadata ~ nftMetadata:", nftMetadata)
-
-//   try{
-//     const nftMetadataUri = await umi.uploader.uploadJson(nftMetadata)
-//     console.log("🚀 ~ createNftMetadata ~ nftMetadataUri:", nftMetadataUri)
-
-//     return nftMetadataUri;
-//   } catch (error) {
-//     console.error("🚀 ~ createNftMetadata ~ error:", error)
-//     throw error;
-//   }
-// }
 
 /**
  * Mint NFT

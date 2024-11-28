@@ -34,12 +34,9 @@ const NFT_NAME = 'Registration NFT'
  * @param userPublicKey 
  * @returns 
  */
-const mintNft = async (umi: Umi, nftMetadataUri: string, userPublicKey: string) => {
+const mintNft = async (umi: Umi, userPublicKey: string) => {
     try{
-  
       const newOwner = metaplexPublicKey(userPublicKey)
-  
-      console.log('Minting Compressed NFT to Merkle Tree...')
   
       const merkleTreeString = process.env.MERKLE_TREE_PUBLIC_KEY;
       if (!merkleTreeString) {
@@ -54,9 +51,6 @@ const mintNft = async (umi: Umi, nftMetadataUri: string, userPublicKey: string) 
       }
   
       const collectionKey = metaplexPublicKey(collectionPubkey);
-
-      const imageUrl = getRegistrationImageUrl();
-      console.log("🚀 ~ mintNft ~ imageUrl:", imageUrl)
       const metadataUrl = getCollectionMetadataUrl();
   
       const { signature } = await mintV1(umi, {
@@ -65,7 +59,7 @@ const mintNft = async (umi: Umi, nftMetadataUri: string, userPublicKey: string) 
         metadata: {
           name: `${NFT_NAME}`,
           symbol: "STDE2024", 
-          uri: metadataUrl, 
+          uri: metadataUrl,
           sellerFeeBasisPoints: 0, 
           collection: { key: collectionKey, verified: false },
           creators: [
@@ -80,19 +74,15 @@ const mintNft = async (umi: Umi, nftMetadataUri: string, userPublicKey: string) 
       // Add delay to ensure transaction is processed
       await new Promise(resolve => setTimeout(resolve, 2000));
   
-      console.log('Finding Asset ID...');
       const leaf = await parseLeafFromMintV1Transaction(umi, signature);
       const assetId = findLeafAssetIdPda(umi, {
         merkleTree: merkleTreePubkey,
         leafIndex: leaf.nonce,
       })
   
-      console.log('Compressed NFT Asset ID:', assetId.toString())
-  
       return assetId;
   
     }catch (error) {
-      console.error("🚀 ~ mintNft ~ error:", error)
       throw error;
     }
   }
@@ -120,7 +110,7 @@ const mint = async (imageUrl: string, publicKey: string): Promise<string> => {
     // Set the keypair as the signer
     umi.use(keypairIdentity(keypair));
 
-    const assetId = await mintNft(umi, "nftMetadataUri", publicKey);
+    const assetId = await mintNft(umi, publicKey);
     return assetId.toString();
 }
 
@@ -162,7 +152,7 @@ export async function POST(request: Request) {
 
     // Check whitelist first
     const isWhitelisted = await isWalletWhitelisted(publicKey);
-    console.log("🚀 ~ POST ~ isWhitelisted:", isWhitelisted)
+    
     if (!isWhitelisted) {
       return NextResponse.json(
         { error: 'Please use the same wallet you used to mint your Superteam Germany Membership NFT.' },
@@ -174,7 +164,6 @@ export async function POST(request: Request) {
     const existing = await db.query.registrations.findFirst({
       where: eq(registrations.walletAddress, publicKey)
     });
-    console.log("🚀 ~ POST ~ existing:", existing)
 
     if (existing) {
       return NextResponse.json(
@@ -184,11 +173,9 @@ export async function POST(request: Request) {
     }
 
     const imageUrl = getRegistrationImageUrl();
-    console.log("🚀 ~ POST ~ imageUrl:", imageUrl)
 
     // Mint registration NFT
     const registrationTx = await mint(imageUrl, publicKey);
-    console.log("🚀 ~ POST ~ registrationTx:", registrationTx)
 
     // Save registration
     await db.insert(registrations).values({
