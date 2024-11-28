@@ -19,3 +19,17 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+:root .wallet-adapter-button-trigger {
+  background: linear-gradient(to right, #9945FF, #14F195) !important;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25) !important;
+  backdrop-filter: blur(16px) !important;
+  letter-spacing: 0.05em !important;
+  color: white !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+:root .wallet-adapter-button-trigger:hover {
+  filter: saturate(1.5) !important;
+  background: linear-gradient(to right, #9945FF, #14F195) !important;
+}

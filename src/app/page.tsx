@@ -116,10 +116,9 @@ export default function Home() {
               <button
                 onClick={handleRegister}
                 disabled={minting || !connected}
-                className={`
-                  px-6 py-3 rounded-lg bg-blue-600 text-white
-                  ${minting || !connected ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}
-                `}
+                className={`bg-gradient-to-r from-[#9945FF] to-[#14F195] shadow-2xl backdrop-blur-xl tracking-wide text-primary-foreground px-6 py-3 rounded-md font-bold cursor-pointer ${
+                  !connected ? 'opacity-50' : 'hover:saturate-[1.5]'
+                }`}
               >
                 {minting ? <Spinner /> : 'Register Now'}
               </button>
