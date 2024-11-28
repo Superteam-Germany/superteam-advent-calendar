@@ -10,6 +10,7 @@ import { useScroll, useTransform } from 'framer-motion';
 import { BlurredCard } from '@/components/blurred-card';
 import Doors from './sections/doors';
 import { ComingSoonMessage } from '@/components/ComingSoonMessage';
+import Sponsors from './sections/sponsors';
 
 export default function Home() {
   const { connected, publicKey, signMessage } = useWallet();
@@ -143,6 +144,7 @@ export default function Home() {
                   <Doors isRegistered={isRegistered} />
                 </>
               )}
+              {/* <Sponsors /> */}
             </>
           )}
         </BlurredCard>
