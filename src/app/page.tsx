@@ -1,8 +1,9 @@
 'use client';
+import React from 'react';
 
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import toast, { Toaster } from 'react-hot-toast';
 import { Spinner } from '@/components/Spinner';
@@ -16,10 +17,27 @@ export default function Home() {
   const { connected, publicKey } = useWallet();
   const [minting, setMinting] = useState(false);
   const [selectedDoor, setSelectedDoor] = useState<number | null>(null);
+  const [isRegistered, setIsRegistered] = useState(false);
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], ['-40%', '-0%']);
 
-  const handleMint = async (doorNumber: number) => {
+  useEffect(() => {
+    if (publicKey) {
+      checkRegistration();
+    }
+  }, [publicKey]);
+
+  const checkRegistration = async () => {
+    try {
+      const response = await fetch(`/api/check-registration?wallet=${publicKey?.toBase58()}`);
+      const data = await response.json();
+      setIsRegistered(data.isRegistered);
+    } catch (err) {
+      console.error('Failed to check registration:', err);
+    }
+  };
+
+  const handleRegister = async () => {
     if (!connected || !publicKey) {
       toast.error('Please connect your wallet first');
       return;
@@ -27,27 +45,46 @@ export default function Home() {
 
     try {
       setMinting(true);
-      setSelectedDoor(doorNumber);
+      
+      // Create message to sign
+      const message = `Register for Superteam Germany Advent Calendar`;
+      const encodedMessage = new TextEncoder().encode(message);
+      
+      // Request signature from wallet
+      let signature;
+      try {
+        signature = await window.solana.signMessage(encodedMessage, "utf8");
+      } catch (signError) {
+        toast.error('Please sign the message to verify your wallet ownership');
+        return;
+      }
 
-      const response = await fetch('/api/mint', {
+      const response = await fetch('/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          doorNumber,
-          publicKey: publicKey.toBase58() 
+          publicKey: publicKey.toBase58(),
+          message,
+          signature: Buffer.from(signature.signature).toString('base64')
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Minting failed');
+      if (response.status === 403) {
+        toast.error('Please use the same wallet you used to mint your Superteam Germany Membership NFT.');
+        return;
       }
 
-      await response.json();
-      toast.success(`Successfully minted Door #${doorNumber}!`);
+      if (!response.ok) {
+        throw new Error('Failed to register');
+      }
+
+      const data = await response.json();
+      toast.success('Successfully registered for the advent calendar!');
+      setIsRegistered(true);
     } catch (err) {
+      console.error('Registration error:', err);
       toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setMinting(false);
@@ -56,6 +93,7 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center p-8 md:p-24">
+      <Toaster position="top-center" />
       <motion.div
         style={{ backgroundSize: 'cover', y }}
         className="bg-[url('/images/backgrounds/line-wave-4-primary.svg')] -z-20 bg-50% bg-no-repeat w-full absolute h-[300vh]">
@@ -75,12 +113,33 @@ export default function Home() {
       </div>
       <div className="z-10 w-full max-w-5xl -mt-24">
         <BlurredCard>
-          <h2 className="text-2xl font-bold text-center m-4 mt-12">Mint todays door and win!</h2>
-          <p className="text-center text-sm text-gray-500 mb-12">
-            You have to use the same wallet you used to mint your Superteam Germany Membership NFT.
-          </p>
-          <Doors />
-      </BlurredCard>
+          {!isRegistered ? (
+            <div className="text-center p-8">
+              <h2 className="text-2xl font-bold mb-4">Register for the Advent Calendar</h2>
+              <p className="text-gray-500 mb-8">
+                Mint your registration NFT to participate in all daily raffles!
+              </p>
+              <button
+                onClick={handleRegister}
+                disabled={minting || !connected}
+                className={`
+                  px-6 py-3 rounded-lg bg-blue-600 text-white
+                  ${minting || !connected ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}
+                `}
+              >
+                {minting ? <Spinner /> : 'Register Now'}
+              </button>
+            </div>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold text-center m-4 mt-12">Open today's door to see if you won!</h2>
+              <p className="text-center text-sm text-gray-500 mb-12">
+                You're registered for all daily raffles. Open doors to reveal your prizes!
+              </p>
+              <Doors isRegistered={isRegistered} />
+            </>
+          )}
+        </BlurredCard>
       </div>
     </main>
   );

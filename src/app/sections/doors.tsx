@@ -12,24 +12,31 @@ import { BlurredCard } from '@/components/blurred-card';
 
 const doors = [7, 19, 3, 9, 11, 22, 5, 12, 8, 1, 16, 14, 20, 17, 24, 18, 23, 15, 13, 2, 4, 6, 21, 10];
 
-export default function Home() {
-  const { connected, publicKey } = useWallet();
-  const [minting, setMinting] = useState(false);
-  const [selectedDoor, setSelectedDoor] = useState<number | null>(null);
-  const { scrollYProgress } = useScroll();
-  const y = useTransform(scrollYProgress, [0, 1], ['-40%', '-0%']);
+interface DoorsProps {
+  isRegistered: boolean;
+}
 
-  const handleMint = async (doorNumber: number) => {
+export default function Doors({ isRegistered }: DoorsProps) {
+  const { connected, publicKey } = useWallet();
+  const [checking, setChecking] = useState(false);
+  const [selectedDoor, setSelectedDoor] = useState<number | null>(null);
+
+  const handleOpenDoor = async (doorNumber: number) => {
     if (!connected || !publicKey) {
       toast.error('Please connect your wallet first');
       return;
     }
 
+    if (!isRegistered) {
+      toast.error('Please register for the advent calendar first');
+      return;
+    }
+
     try {
-      setMinting(true);
+      setChecking(true);
       setSelectedDoor(doorNumber);
 
-      const response = await fetch('/api/mint', {
+      const response = await fetch('/api/check-winner', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,63 +49,30 @@ export default function Home() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Minting failed');
+        throw new Error(errorData.error || 'Failed to check winner');
       }
 
-      await response.json();
-      toast.success(`Successfully minted Door #${doorNumber}!`);
+      const { isWinner, prize } = await response.json();
+      if (isWinner) {
+        toast.success(`Congratulations! You won ${prize}!`);
+      } else {
+        toast.error('Better luck next time!');
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
-      setMinting(false);
+      setChecking(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center">
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 5000,
-          style: {
-            background: '#333',
-            color: '#fff',
-            borderRadius: '8px',
-            padding: '16px',
-          },
-          success: {
-            iconTheme: {
-              primary: '#4ade80',
-              secondary: '#333',
-            },
-          },
-          error: {
-            iconTheme: {
-              primary: '#ef4444',
-              secondary: '#333',
-            },
-          },
-        }}
-      />
-      
-
-      {minting && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg shadow-xl">
-            <Spinner />
-            <div className="text-white text-sm mt-2 text-center">
-              Minting Door #{selectedDoor}
-            </div>
-          </div>
-        </div>
-      )}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
-        {doors.map((doorNumber) => (
-            <button
-            key={doorNumber}
-            onClick={() => handleMint(doorNumber)}
-            disabled={minting}
-            className={`
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+      {doors.map((doorNumber) => (
+        <button
+          key={doorNumber}
+          onClick={() => handleOpenDoor(doorNumber)}
+          disabled={checking || !connected || !isRegistered}
+          className={`
             aspect-square
             rounded-lg
             flex
@@ -106,20 +80,19 @@ export default function Home() {
             justify-center
             transition-all
             overflow-hidden
-            ${minting ? 'cursor-not-allowed' : 'hover:scale-105'}
-            ${!connected ? 'opacity-50 cursor-not-allowed' : ''}
-            `}
+            ${checking ? 'cursor-not-allowed' : 'hover:scale-105'}
+            ${(!connected || !isRegistered) ? 'opacity-50 cursor-not-allowed' : ''}
+          `}
         >
-            <Image
+          <Image
             src={`/images/door${doorNumber.toString().padStart(2, '0')}.png`}
             alt={`Door ${doorNumber}`}
             width={200}
             height={200}
             className="w-full h-full object-cover"
-            />
-            </button>
-        ))}
-        </div>
+          />
+        </button>
+      ))}
     </div>
   );
 }

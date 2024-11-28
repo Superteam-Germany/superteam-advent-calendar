@@ -1,7 +1,7 @@
-import { pgTable, text, timestamp, integer, boolean, primaryKey, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, integer, serial, date, unique } from 'drizzle-orm/pg-core';
 
 export const mints = pgTable('mints', {
-  id: text('id').primaryKey(), // UUID for the mint
+  id: text('id').primaryKey(),
   walletAddress: text('wallet_address').notNull(),
   doorNumber: integer('door_number').notNull(),
   mintedAt: timestamp('minted_at').defaultNow().notNull(),
@@ -11,19 +11,23 @@ export const mints = pgTable('mints', {
   uniqWalletDoor: unique('uniq_wallet_door').on(table.walletAddress, table.doorNumber),
 }));
 
-export const raffles = pgTable('raffles', {
-  id: text('id').primaryKey(), // UUID for the raffle
-  doorNumber: integer('door_number').notNull(),
-  drawDate: timestamp('draw_date').notNull(),
-  prize: text('prize').notNull(),
-  winnerWalletAddress: text('winner_wallet_address'),
-  isDrawn: boolean('is_drawn').default(false).notNull(),
+export const registrations = pgTable('registrations', {
+  walletAddress: text('wallet_address').primaryKey(),
+  registrationDate: timestamp('registration_date').defaultNow(),
+  registrationTx: text('registration_tx'),
+  isActive: boolean('is_active').default(true)
 });
 
-// Junction table for raffle entries
-export const raffleEntries = pgTable('raffle_entries', {
-  mintId: text('mint_id').notNull().references(() => mints.id),
-  raffleId: text('raffle_id').notNull().references(() => raffles.id),
-}, (table) => ({
-  pk: primaryKey({ columns: [table.mintId, table.raffleId] }),
-})); 
+export const winners = pgTable('winners', {
+  id: serial('id').primaryKey(),
+  walletAddress: text('wallet_address').references(() => registrations.walletAddress),
+  doorNumber: integer('door_number'),
+  dayDate: date('day_date'),
+  prize: text('prize'),
+  claimed: boolean('claimed').default(false),
+  claimedTx: text('claimed_tx'),
+}, (table) => {
+  return {
+    dayDoorUnique: unique().on(table.dayDate, table.doorNumber)
+  };
+}); 

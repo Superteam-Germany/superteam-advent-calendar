@@ -33,6 +33,7 @@
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
     "tailwind-merge": "^2.5.4",
+    "tweetnacl": "^1.0.3",
     "uuid": "^11.0.3"
   },
   "devDependencies": {
