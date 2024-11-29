@@ -11,8 +11,8 @@ export const getRegistrationImageUrl = (): string => {
 }; 
 
 export const getRegistrationMetaUrl = () => {
-  // https://gateway.pinata.cloud/ipfs/QmT4f6dG5xHoC7BKLcNwZgK6LSoaxd9CTxpEJsH9QwZMAP
-  return `${BASE_URL}/QmWmHpZg7EChr7dEKy2vHEpuQsBaqYZhEaYUminuykQu9k`
+  // https://gateway.pinata.cloud/ipfs/QmTW95rxu8TVdqTneHWi5cKS5cSinLUZgsXoQySsfjpHqd
+  return `${BASE_URL}/QmTW95rxu8TVdqTneHWi5cKS5cSinLUZgsXoQySsfjpHqd`
 }
 
 export const getCollectionMetadataUrl = () => {

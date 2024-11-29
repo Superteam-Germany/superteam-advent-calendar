@@ -13,8 +13,9 @@ interface Props {
 }
 
 export const WalletContextProvider: FC<Props> = ({ children }) => {
+    const dev = process.env.TESTMODE === 'true';
     // You can also provide a custom RPC endpoint
-    const endpoint = useMemo(() => clusterApiUrl('devnet'), []);
+    const endpoint = useMemo(() => clusterApiUrl(dev ? 'devnet' : 'mainnet-beta'), []);
 
     const wallets = useMemo(
         () => [

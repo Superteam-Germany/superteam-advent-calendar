@@ -17,24 +17,9 @@ const getGoogleSheetsClient = () => {
   return google.sheets({ version: 'v4', auth });
 };
 
-// Add this function to help debug
-async function getSheetNames() {
-  const sheets = getGoogleSheetsClient();
-  const response = await sheets.spreadsheets.get({
-    spreadsheetId: process.env.GOOGLE_SHEETS_ID,
-  });
-  
-  console.log("Available sheets:", response.data.sheets?.map(sheet => sheet.properties?.title));
-  return response.data.sheets?.map(sheet => sheet.properties?.title);
-}
-
 // Modify isWalletWhitelisted to use this first
 export const isWalletWhitelisted = async (walletAddress: string): Promise<boolean> => {
   try {
-    // First get all sheet names for debugging
-    const sheetNames = await getSheetNames();
-    console.log("Available sheets:", sheetNames);
-    
     const sheets = getGoogleSheetsClient();
     const sheetName = process.env.GOOGLE_SHEET_NAME;
     if (!sheetName) {

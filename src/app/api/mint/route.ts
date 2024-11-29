@@ -15,8 +15,6 @@ import {
   publicKey,
 } from "@metaplex-foundation/umi";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
-import { irysUploader } from "@metaplex-foundation/umi-uploader-irys";
-import fs from "fs";
 import { Umi, } from "@metaplex-foundation/umi";
 import { dasApi } from "@metaplex-foundation/digital-asset-standard-api";
 import { isWalletWhitelisted } from '@/utils/whitelisting';
@@ -29,6 +27,7 @@ const NFT_NAME = 'SuperteamDE Door '
 export async function POST(req: NextRequest) {
   try {
     const { publicKey, doorNumber } = await req.json();
+    const network = process.env.NETWORK;
 
     if (!publicKey) {
       return NextResponse.json(
@@ -36,8 +35,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    console.log(`Minting request from wallet: ${publicKey}`);
 
     const isWhitelisted = await isWalletWhitelisted(publicKey);
     if (!isWhitelisted) {
@@ -78,20 +75,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const umi = createUmi('https://api.devnet.solana.com')
+    if (!network) {
+      throw new Error('NETWORK environment variable is not set');
+    }
+    
+    const umi = createUmi(network)
       .use(mplBubblegum())
       .use(mplTokenMetadata())
-      .use(dasApi())
-      .use(
-        irysUploader({
-            address: 'https://devnet.irys.xyz',
-        })
+      .use(dasApi()
+      // .use(
+      //   irysUploader({
+      //       address: 'https://devnet.irys.xyz',
+      //   })
     );
-    const walletFile = fs.readFileSync('./.keys/adventcalendar-wallet.json', 'utf8');
-    const walletData = JSON.parse(walletFile);
+    // const walletFile = fs.readFileSync('./.keys/adventcalendar-wallet.json', 'utf8');
+    // const walletData = JSON.parse(walletFile);
+
+    const privateKey = process.env.PAYER_PRIV;
+    if (!privateKey) {
+      throw new Error('PAYER_PRIV environment variable is not set');
+    }
 
     // Decode the Base64-encoded private key
-    const secretKeyBuffer = Buffer.from(walletData.privateKey, 'base64');
+    const secretKeyBuffer = Buffer.from(privateKey, 'base64');
     const secretKeyUint8Array = new Uint8Array(secretKeyBuffer);
 
     // Create the keypair from the secret key
@@ -103,10 +109,7 @@ export async function POST(req: NextRequest) {
     // Get the correct image URL for this door
     const imageUrl = getDoorImageUrl(doorNumber);
 
-    // const nftMetadataUri = await createNftMetadata(doorNumber, imageUrl);
-
     const assetId = await mintNft(umi, "nftMetadataUri", publicKey, doorNumber);
-    console.log("🚀 ~ POST ~ assetId:", assetId.toString())
 
     // Record the mint in the database
     try {
@@ -118,6 +121,7 @@ export async function POST(req: NextRequest) {
         isEligibleForRaffle: true,
       });
     } catch (error: any) {
+      console.error("🚀 ~ mintNft ~ error:", error)
       // Handle unique constraint violation
       if (error.code === 'ER_DUP_ENTRY') {
         return NextResponse.json(
@@ -136,6 +140,7 @@ export async function POST(req: NextRequest) {
       message: `Successfully minted NFT for door ${doorNumber}!`
     });
   } catch (error) {
+    console.error("🚀 ~ mintNft ~ error:", error)
     return NextResponse.json(
       { error: `Failed to mint NFT: ${error}` },
       { status: 500 }
@@ -155,8 +160,6 @@ const mintNft = async (umi: Umi, nftMetadataUri: string, userPublicKey: string, 
   try{
 
     const newOwner = publicKey(userPublicKey)
-
-    console.log('Minting Compressed NFT to Merkle Tree...')
 
     const merkleTreeString = process.env.MERKLE_TREE_PUBLIC_KEY;
     if (!merkleTreeString) {
@@ -193,33 +196,13 @@ const mintNft = async (umi: Umi, nftMetadataUri: string, userPublicKey: string, 
     // Add delay to ensure transaction is processed
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    console.log('Finding Asset ID...');
     const leaf = await parseLeafFromMintV1Transaction(umi, signature);
     const assetId = findLeafAssetIdPda(umi, {
       merkleTree: merkleTreePubkey,
       leafIndex: leaf.nonce,
     })
 
-    console.log('Compressed NFT Asset ID:', assetId.toString())
-
     return assetId;
-
-    // // Fetch the asset using umi rpc with DAS.
-    // const asset = await umi.rpc.getAccount(assetId[0]);
-
-    // console.log({ asset })
-
-    // //
-    // // ** Verify cNFT to Collection **
-    // //
-    
-    // console.log('verifying Collection')
-    // const assetWithProof = await getAssetWithProof(, assetId[0])
-    // await verifyCollection(umi, {
-    //   ...assetWithProof,
-    //   collectionMint: collectionKey,
-    //   collectionAuthority: umi.identity,
-    // }).sendAndConfirm(umi)
   }catch (error) {
     console.error("🚀 ~ mintNft ~ error:", error)
     throw error;

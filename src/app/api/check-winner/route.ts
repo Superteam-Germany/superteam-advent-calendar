@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     }
 
     // Convert Date to YYYY-MM-DD format
-    const today = new Date().toISOString().split('T')[0];
+    // const today = new Date().toISOString().split('T')[0];
 
     const winner = await db.query.prizeWinners.findFirst({
       where: and(

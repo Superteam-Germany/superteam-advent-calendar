@@ -69,7 +69,6 @@ async function selectWinners(doorNumber: number): Promise<Winner[]> {
     .where(
       and(
         eq(prizeWinners.doorNumber, doorNumber),
-        eq(prizeWinners.dayDate, new Date().toISOString().split('T')[0])
       )
     );
 
@@ -134,7 +133,6 @@ export async function POST(req: Request) {
       .where(
         and(
           eq(prizeWinners.doorNumber, day),
-          eq(prizeWinners.dayDate, today)
         )
       );
 

@@ -12,7 +12,6 @@ import {
   publicKey as metaplexPublicKey,
 } from "@metaplex-foundation/umi";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
-import { irysUploader } from "@metaplex-foundation/umi-uploader-irys";
 import fs from "fs";
 import { dasApi } from "@metaplex-foundation/digital-asset-standard-api";
 import {
@@ -24,9 +23,8 @@ import {
 import { Umi } from "@metaplex-foundation/umi";
 import { getRegistrationImageUrl, getRegistrationMetaUrl } from '@/utils/imageUtils';
 import { isWalletWhitelisted } from '@/utils/whitelisting';
-import bs58 from 'bs58';
 
-const NFT_NAME = 'Registration NFT'
+const NFT_NAME = 'Super Ticket'
 
 /**
  * Mint NFT
@@ -80,7 +78,6 @@ const mintNft = async (umi: Umi, userPublicKey: string) => {
         merkleTree: merkleTreePubkey,
         leafIndex: leaf.nonce,
       })
-      console.log("🚀 ~ mintNft ~ assetId:", assetId)
   
       return assetId;
   
@@ -90,25 +87,31 @@ const mintNft = async (umi: Umi, userPublicKey: string) => {
   }
 
 const mint = async (imageUrl: string, publicKey: string): Promise<string> => {
-    const umi = createUmi('https://api.devnet.solana.com')
-      .use(mplBubblegum())
+  const network = process.env.NETWORK;
+  if (!network) {
+    throw new Error('NETWORK environment variable is not set');
+  }
+
+  const umi = createUmi(network)
+    .use(mplBubblegum())
       .use(mplTokenMetadata())
       .use(dasApi());
-    const walletFile = fs.readFileSync('./.keys/adventcalendar-wallet.json', 'utf8');
-    const walletData = JSON.parse(walletFile);
 
-    // Decode the Base64-encoded private key
-    const secretKeyBuffer = Buffer.from(walletData.privateKey, 'base64');
-    const secretKeyUint8Array = new Uint8Array(secretKeyBuffer);
+  const walletFile = fs.readFileSync('./.keys/adventcalendar-wallet.json', 'utf8');
+  const walletData = JSON.parse(walletFile);
 
-    // Create the keypair from the secret key
-    const keypair = umi.eddsa.createKeypairFromSecretKey(secretKeyUint8Array);
+  // Decode the Base64-encoded private key
+  const secretKeyBuffer = Buffer.from(walletData.privateKey, 'base64');
+  const secretKeyUint8Array = new Uint8Array(secretKeyBuffer);
 
-    // Set the keypair as the signer
-    umi.use(keypairIdentity(keypair));
+  // Create the keypair from the secret key
+  const keypair = umi.eddsa.createKeypairFromSecretKey(secretKeyUint8Array);
 
-    const assetId = await mintNft(umi, publicKey);
-    return assetId.toString();
+  // Set the keypair as the signer
+  umi.use(keypairIdentity(keypair));
+
+  const assetId = await mintNft(umi, publicKey);
+  return assetId.toString();
 }
 
 export async function POST(request: Request) {
