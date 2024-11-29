@@ -22,8 +22,9 @@ import {
     parseLeafFromMintV1Transaction,
 } from "@metaplex-foundation/mpl-bubblegum";
 import { Umi } from "@metaplex-foundation/umi";
-import { getRegistrationImageUrl, getCollectionMetadataUrl } from '@/utils/imageUtils';
+import { getRegistrationImageUrl, getRegistrationMetaUrl } from '@/utils/imageUtils';
 import { isWalletWhitelisted } from '@/utils/whitelisting';
+import bs58 from 'bs58';
 
 const NFT_NAME = 'Registration NFT'
 
@@ -51,7 +52,7 @@ const mintNft = async (umi: Umi, userPublicKey: string) => {
       }
   
       const collectionKey = metaplexPublicKey(collectionPubkey);
-      const metadataUrl = getCollectionMetadataUrl();
+      const metadataUrl = getRegistrationMetaUrl();
   
       const { signature } = await mintV1(umi, {
         leafOwner: newOwner,
@@ -79,6 +80,7 @@ const mintNft = async (umi: Umi, userPublicKey: string) => {
         merkleTree: merkleTreePubkey,
         leafIndex: leaf.nonce,
       })
+      console.log("🚀 ~ mintNft ~ assetId:", assetId)
   
       return assetId;
   
@@ -91,12 +93,7 @@ const mint = async (imageUrl: string, publicKey: string): Promise<string> => {
     const umi = createUmi('https://api.devnet.solana.com')
       .use(mplBubblegum())
       .use(mplTokenMetadata())
-      .use(dasApi())
-      .use(
-        irysUploader({
-            address: 'https://devnet.irys.xyz',
-        })
-    );
+      .use(dasApi());
     const walletFile = fs.readFileSync('./.keys/adventcalendar-wallet.json', 'utf8');
     const walletData = JSON.parse(walletFile);
 

@@ -17,6 +17,7 @@ export default function Home() {
   const [isRegistered, setIsRegistered] = useState(false);
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], ['-40%', '-0%']);
+  const testmode = process.env.NEXT_PUBLIC_TESTMODE;
 
   useEffect(() => {
     if (publicKey) {
@@ -133,7 +134,7 @@ export default function Home() {
             </div>
           ) : (
             <>
-              {isBeforeDecFirst() ? (
+              {isBeforeDecFirst() && testmode === 'false' ? (
                 <ComingSoonMessage />
               ) : (
                 <>

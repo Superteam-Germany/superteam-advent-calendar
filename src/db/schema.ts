@@ -31,9 +31,11 @@ export const prizes = pgTable('prizes', {
 
 export const prizeWinners = pgTable('prize_winners', {
   id: uuid('id').defaultRandom().primaryKey(),
-  walletAddress: text('wallet_address').references(() => registrations.walletAddress),
+  walletAddress: text('wallet_address').references(() => registrations.walletAddress, {
+    onDelete: 'cascade',
+    onUpdate: 'cascade'
+  }),
   doorNumber: integer('door_number'),
-  dayDate: date('day_date'),
   prizeId: uuid('prize_id').references(() => prizes.id),
   claimed: boolean('claimed').default(false),
 }); 

@@ -25,12 +25,10 @@ export async function POST(request: Request) {
     // Convert Date to YYYY-MM-DD format
     const today = new Date().toISOString().split('T')[0];
 
-    // Check if user has already won today
     const winner = await db.query.prizeWinners.findFirst({
       where: and(
         eq(prizeWinners.walletAddress, publicKey),
         eq(prizeWinners.doorNumber, doorNumber),
-        eq(prizeWinners.dayDate, today)
       )
     });
 
@@ -50,7 +48,6 @@ export async function POST(request: Request) {
       await db.insert(prizeWinners).values({
         walletAddress: publicKey,
         doorNumber,
-        dayDate: today,
         prizeId: prize
       });
     }
