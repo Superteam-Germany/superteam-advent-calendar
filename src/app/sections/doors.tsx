@@ -1,14 +1,8 @@
 'use client';
-
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useState } from 'react';
 import Image from 'next/image';
-import toast, { Toaster } from 'react-hot-toast';
-import { Spinner } from '@/components/Spinner';
-import { motion } from 'framer-motion';
-import { useScroll, useTransform } from 'framer-motion';
-import { BlurredCard } from '@/components/blurred-card';
+import toast from 'react-hot-toast';
 
 const doors = [7, 19, 3, 9, 11, 22, 5, 12, 8, 1, 16, 14, 20, 17, 24, 18, 23, 15, 13, 2, 4, 6, 21, 10];
 
@@ -19,7 +13,7 @@ interface DoorsProps {
 export default function Doors({ isRegistered }: DoorsProps) {
   const { connected, publicKey } = useWallet();
   const [checking, setChecking] = useState(false);
-  const [selectedDoor, setSelectedDoor] = useState<number | null>(null);
+  // const [selectedDoor, setSelectedDoor] = useState<number | null>(null);
 
   const handleOpenDoor = async (doorNumber: number) => {
     if (!connected || !publicKey) {
@@ -34,7 +28,7 @@ export default function Doors({ isRegistered }: DoorsProps) {
 
     try {
       setChecking(true);
-      setSelectedDoor(doorNumber);
+      // setSelectedDoor(doorNumber);
 
       const response = await fetch('/api/check-winner', {
         method: 'POST',

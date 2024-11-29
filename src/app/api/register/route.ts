@@ -145,7 +145,7 @@ export async function POST(request: Request) {
       }
     } catch (error) {
       return NextResponse.json(
-        { error: 'Signature verification failed' },
+        { error: `Signature verification failed: ${error}` },
         { status: 401 }
       );
     }
@@ -187,7 +187,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(
-      { error: 'Failed to register' },
+      { error: `Failed to register: ${error}` },
       { status: 500 }
     );
   }

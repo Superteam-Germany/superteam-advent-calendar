@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: 'Failed to check registration' },
+      { error: `Failed to check registration: ${error}` },
       { status: 500 }
     );
   }

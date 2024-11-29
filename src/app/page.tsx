@@ -10,7 +10,6 @@ import { useScroll, useTransform } from 'framer-motion';
 import { BlurredCard } from '@/components/blurred-card';
 import Doors from './sections/doors';
 import { ComingSoonMessage } from '@/components/ComingSoonMessage';
-import Sponsors from './sections/sponsors';
 
 export default function Home() {
   const { connected, publicKey, signMessage } = useWallet();
@@ -53,6 +52,7 @@ export default function Home() {
       try {
         signature = await signMessage(encodedMessage);
       } catch (signError) {
+        console.error('Failed to sign message:', signError);
         toast.error('Please sign the message to verify your wallet ownership');
         return;
       }

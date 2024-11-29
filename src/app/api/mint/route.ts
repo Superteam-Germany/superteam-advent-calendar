@@ -42,14 +42,14 @@ export async function POST(req: NextRequest) {
     const isWhitelisted = await isWalletWhitelisted(publicKey);
     if (!isWhitelisted) {
       return NextResponse.json(
-        { error: 'Please use the same wallet you used to mint your Superteam Germany Membership NFT.' },
+        { error: "Please use the same wallet you used to mint your Superteam Germany Membership NFT." },
         { status: 403 }
       );
     }
  
     if (!doorNumber || doorNumber < 1 || doorNumber > 24) {
       return NextResponse.json(
-        { error: 'Invalid door number' },
+        { error: "Invalid door number" },
         { status: 400 }
       );
     }
@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: 'Failed to mint NFT' },
+      { error: `Failed to mint NFT: ${error}` },
       { status: 500 }
     );
   }
