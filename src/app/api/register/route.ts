@@ -51,6 +51,7 @@ const mintNft = async (umi: Umi, userPublicKey: string) => {
   
       const collectionKey = metaplexPublicKey(collectionPubkey);
       const metadataUrl = getRegistrationMetaUrl();
+      console.log("🚀 ~ mintNft ~ metadataUrl:", metadataUrl)
   
       const { signature } = await mintV1(umi, {
         leafOwner: newOwner,
@@ -69,6 +70,7 @@ const mintNft = async (umi: Umi, userPublicKey: string) => {
         send: { commitment: 'finalized' },
         confirm: { commitment: 'finalized' }
       });
+      console.log("🚀 ~ mintNft ~ signature:", signature)
   
       // Add delay to ensure transaction is processed
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -78,6 +80,7 @@ const mintNft = async (umi: Umi, userPublicKey: string) => {
         merkleTree: merkleTreePubkey,
         leafIndex: leaf.nonce,
       })
+      console.log("🚀 ~ mintNft ~ assetId:", assetId)
   
       return assetId;
   

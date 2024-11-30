@@ -27,8 +27,12 @@ body {
   letter-spacing: 0.05em !important;
   color: white !important;
   max-width: 150px !important;
-  margin-right: 6px !important;
-  transition: all 0.2s ease-in-out !important;
+  max-width: 150px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  padding: 0 12px !important;  /* Adjust padding to ensure consistent button size */
+  font-size: 14px !important;
 }
 
 :root .wallet-adapter-button-trigger:hover {
