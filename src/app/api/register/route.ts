@@ -14,10 +14,10 @@ import {
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import { dasApi } from "@metaplex-foundation/digital-asset-standard-api";
 import {
-    findLeafAssetIdPda,
+    // findLeafAssetIdPda,
     mintV1,
     mplBubblegum,
-    parseLeafFromMintV1Transaction,
+    // parseLeafFromMintV1Transaction,
 } from "@metaplex-foundation/mpl-bubblegum";
 import { Umi } from "@metaplex-foundation/umi";
 import { getRegistrationImageUrl, getRegistrationMetaUrl } from '@/utils/imageUtils';
@@ -110,7 +110,7 @@ const mint = async (imageUrl: string, publicKey: string) => {
 
   // Set the keypair as the signer
   umi.use(keypairIdentity(keypair));
-  const assetId = await mintNft(umi, publicKey);
+  await mintNft(umi, publicKey);
   // return assetId.toString();
 }
 
