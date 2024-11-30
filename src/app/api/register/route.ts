@@ -65,10 +65,7 @@ const mintNft = async (umi: Umi, userPublicKey: string) => {
             { address: umi.identity.publicKey, verified: true, share: 100 },
           ],
         },
-      }).sendAndConfirm(umi, { 
-        send: { commitment: 'confirmed' },
-        confirm: { commitment: 'confirmed' }
-      });
+      }).sendAndConfirm(umi, { send: { commitment: 'finalized' } });
       console.log("🚀 ~ mintNft ~ signature:", signature)
   
       // Add delay to ensure transaction is processed
