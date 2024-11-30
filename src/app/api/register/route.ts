@@ -12,7 +12,6 @@ import {
   publicKey as metaplexPublicKey,
 } from "@metaplex-foundation/umi";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
-import fs from "fs";
 import { dasApi } from "@metaplex-foundation/digital-asset-standard-api";
 import {
     findLeafAssetIdPda,
