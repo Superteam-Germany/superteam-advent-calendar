@@ -19,7 +19,8 @@ import {
 import { Umi } from "@metaplex-foundation/umi";
 import { getRegistrationMetaUrl } from '@/utils/imageUtils';
 
-const NFT_NAME = 'Super Ticket'
+const NFT_NAME = 'Super Ticket';
+const MINT_TIMEOUT = 60000; 
 
 async function verifySignature(publicKey: string, message: string, signature: string): Promise<boolean> {
   try {
@@ -38,54 +39,67 @@ async function verifySignature(publicKey: string, message: string, signature: st
   }
 }
 
-/**
- * Mint NFT
- * @param umi 
- * @param userPublicKey 
- * @returns 
- */
-const mintNft = async (umi: Umi, userPublicKey: string) => {
-  try {
-    const newOwner = metaplexPublicKey(userPublicKey)
+const mintNft = async (umi: Umi, userPublicKey: string): Promise<string> => {
+  return new Promise(async (resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error('Minting operation timed out'));
+    }, MINT_TIMEOUT);
 
-    const merkleTreeString = process.env.MERKLE_TREE_PUBLIC_KEY;
-    if (!merkleTreeString) {
-      throw new Error('MERKLE_TREE_PUBLIC_KEY is not set');
+    try {
+      console.log('Starting NFT mint for wallet:', userPublicKey);
+      const newOwner = metaplexPublicKey(userPublicKey);
+
+      const merkleTreeString = process.env.MERKLE_TREE_PUBLIC_KEY;
+      if (!merkleTreeString) {
+        clearTimeout(timeoutId);
+        throw new Error('MERKLE_TREE_PUBLIC_KEY is not set');
+      }
+
+      const merkleTreePubkey = metaplexPublicKey(merkleTreeString);
+      console.log('Using merkle tree:', merkleTreeString);
+
+      const collectionPubkey = process.env.COLLECTION_PUBLIC_KEY;
+      if (!collectionPubkey) {
+        clearTimeout(timeoutId);
+        throw new Error('COLLECTION_PUBLIC_KEY is not set');
+      }
+
+      const collectionKey = metaplexPublicKey(collectionPubkey);
+      const metadataUrl = getRegistrationMetaUrl();
+      console.log('Using metadata URL:', metadataUrl);
+
+      console.log('Initiating mint transaction...');
+      const { signature } = await mintV1(umi, {
+        leafOwner: newOwner,
+        merkleTree: merkleTreePubkey,
+        metadata: {
+          name: `${NFT_NAME}`,
+          symbol: "STDE2024",
+          uri: metadataUrl,
+          sellerFeeBasisPoints: 0,
+          collection: { key: collectionKey, verified: false },
+          creators: [
+            { address: umi.identity.publicKey, verified: true, share: 100 },
+          ],
+        },
+      }).sendAndConfirm(umi, { 
+        send: { commitment: 'processed' },
+        confirm: { commitment: 'processed' }
+      });
+
+      console.log('Mint transaction completed with signature:', signature);
+      clearTimeout(timeoutId);
+      resolve(Buffer.from(signature).toString('base64'));
+    } catch (error) {
+      clearTimeout(timeoutId);
+      console.error('Mint operation failed:', error);
+      reject(error);
     }
-
-    const merkleTreePubkey = metaplexPublicKey(merkleTreeString);
-
-    const collectionPubkey = process.env.COLLECTION_PUBLIC_KEY;
-    if (!collectionPubkey) {
-      throw new Error('COLLECTION_PUBLIC_KEY is not set');
-    }
-
-    const collectionKey = metaplexPublicKey(collectionPubkey);
-    const metadataUrl = getRegistrationMetaUrl();
-
-    const { signature } = await mintV1(umi, {
-      leafOwner: newOwner,
-      merkleTree: merkleTreePubkey,
-      metadata: {
-        name: `${NFT_NAME}`,
-        symbol: "STDE2024", 
-        uri: metadataUrl,
-        sellerFeeBasisPoints: 0, 
-        collection: { key: collectionKey, verified: false },
-        creators: [
-          { address: umi.identity.publicKey, verified: true, share: 100 },
-        ],
-      },
-    }).sendAndConfirm(umi, { send: { commitment: 'confirmed' } });
-
-    return signature;
-  } catch (error) {
-    console.error("Minting failed:", error);
-    throw error;
-  }
+  });
 }
 
-const mint = async (publicKey: string) => {
+const mint = async (publicKey: string): Promise<string> => {
+  console.log('Initializing minting process...');
   const network = process.env.NETWORK;
   if (!network) {
     throw new Error('NETWORK environment variable is not set');
@@ -110,13 +124,20 @@ const mint = async (publicKey: string) => {
 }
 
 async function saveRegistration(publicKey: string) {
-  await db.insert(registrations).values({
-    walletAddress: publicKey,
-    isActive: true
-  });
+  try {
+    await db.insert(registrations).values({
+      walletAddress: publicKey,
+      isActive: true
+    });
+    console.log('Registration saved for wallet:', publicKey);
+  } catch (error) {
+    console.error('Failed to save registration:', error);
+    throw error;
+  }
 }
 
 export async function POST(request: Request) {
+  console.log('Starting registration process...');
   try {
     const { publicKey, message, signature } = await request.json();
 
@@ -127,7 +148,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Step 1: Verify signature
+    console.log('Verifying signature for wallet:', publicKey);
     const isValidSignature = await verifySignature(publicKey, message, signature);
     if (!isValidSignature) {
       return NextResponse.json(
@@ -136,11 +157,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Step 2: Mint NFT
+    console.log('Signature verified, proceeding with mint...');
     const mintSignature = await mint(publicKey);
-    console.log("Registration NFT minted with signature:", mintSignature);
-
-    // Step 3: Save registration in database
+    
+    console.log('NFT minted successfully, saving registration...');
     await saveRegistration(publicKey);
 
     return NextResponse.json({ 
@@ -148,9 +168,9 @@ export async function POST(request: Request) {
       signature: mintSignature
     });
   } catch (error) {
-    console.error("Registration failed:", error);
+    console.error('Registration failed:', error);
     return NextResponse.json(
-      { error: `Failed to register: ${error}` },
+      { error: error instanceof Error ? error.message : 'Failed to register' },
       { status: 500 }
     );
   }
