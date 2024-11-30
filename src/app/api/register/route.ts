@@ -66,13 +66,13 @@ const mintNft = async (umi: Umi, userPublicKey: string) => {
           ],
         },
       }).sendAndConfirm(umi, { 
-        send: { commitment: 'finalized' },
-        confirm: { commitment: 'finalized' }
+        send: { commitment: 'confirmed' },
+        confirm: { commitment: 'confirmed' }
       });
       console.log("🚀 ~ mintNft ~ signature:", signature)
   
       // Add delay to ensure transaction is processed
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // await new Promise(resolve => setTimeout(resolve, 2000));
   
       const leaf = await parseLeafFromMintV1Transaction(umi, signature);
       const assetId = findLeafAssetIdPda(umi, {
@@ -84,6 +84,7 @@ const mintNft = async (umi: Umi, userPublicKey: string) => {
       return assetId;
   
     }catch (error) {
+      console.error("🚀 ~ mintNft ~ error:", error)
       throw error;
     }
   }
