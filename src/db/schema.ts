@@ -1,5 +1,4 @@
 import { pgTable, text, timestamp, boolean, integer, unique, uuid } from 'drizzle-orm/pg-core';
-import { mysqlTable, varchar } from 'drizzle-orm/mysql-core';
 
 export const mints = pgTable('mints', {
   id: text('id').primaryKey(),
