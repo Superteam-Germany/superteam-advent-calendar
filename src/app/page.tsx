@@ -79,7 +79,7 @@ export default function Home() {
         console.log("🚀 ~ handleRegister ~ response:", response)
         throw new Error('Failed to register');
       }
-      const mintingResponse = await fetch('http://34.28.112.81:3000/mint', {
+      const mintingResponse = await fetch('https://34.28.112.81:3000/mint', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
