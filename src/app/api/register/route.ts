@@ -4,26 +4,29 @@ import nacl from 'tweetnacl';
 import { db } from '@/db';
 import { registrations } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import {
-  mplTokenMetadata,
-} from "@metaplex-foundation/mpl-token-metadata";
-import {
-  keypairIdentity,
-  publicKey as metaplexPublicKey,
-} from "@metaplex-foundation/umi";
-import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
-import { dasApi } from "@metaplex-foundation/digital-asset-standard-api";
-import {
-    findLeafAssetIdPda,
-    mintV1,
-    mplBubblegum,
-    parseLeafFromMintV1Transaction,
-} from "@metaplex-foundation/mpl-bubblegum";
-import { Umi } from "@metaplex-foundation/umi";
-import { getRegistrationImageUrl, getRegistrationMetaUrl } from '@/utils/imageUtils';
+// import {
+//   mplTokenMetadata,
+// } from "@metaplex-foundation/mpl-token-metadata";
+// import {
+//   keypairIdentity,
+//   publicKey as metaplexPublicKey,
+// } from "@metaplex-foundation/umi";
+// import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
+// import { dasApi } from "@metaplex-foundation/digital-asset-standard-api";
+// import {
+//     findLeafAssetIdPda,
+//     mintV1,
+//     mplBubblegum,
+//     parseLeafFromMintV1Transaction,
+// } from "@metaplex-foundation/mpl-bubblegum";
+// import { Umi } from "@metaplex-foundation/umi";
+import { 
+  getRegistrationImageUrl, 
+  // getRegistrationMetaUrl 
+} from '@/utils/imageUtils';
 import { isWalletWhitelisted } from '@/utils/whitelisting';
 
-const NFT_NAME = 'Super Ticket'
+// const NFT_NAME = 'Super Ticket'
 
 /**
  * Mint NFT
@@ -32,94 +35,94 @@ const NFT_NAME = 'Super Ticket'
  * @param userPublicKey 
  * @returns 
  */
-const mintNft = async (umi: Umi, userPublicKey: string) => {
-    try{
-      const newOwner = metaplexPublicKey(userPublicKey)
+// const mintNft = async (umi: Umi, userPublicKey: string) => {
+//     try{
+//       const newOwner = metaplexPublicKey(userPublicKey)
   
-      const merkleTreeString = process.env.MERKLE_TREE_PUBLIC_KEY;
-      if (!merkleTreeString) {
-        throw new Error('MERKLE_TREE_PUBLIC_KEY is not set');
-      }
+//       const merkleTreeString = process.env.MERKLE_TREE_PUBLIC_KEY;
+//       if (!merkleTreeString) {
+//         throw new Error('MERKLE_TREE_PUBLIC_KEY is not set');
+//       }
   
-      const merkleTreePubkey = metaplexPublicKey(merkleTreeString);
+//       const merkleTreePubkey = metaplexPublicKey(merkleTreeString);
   
-      const collectionPubkey = process.env.COLLECTION_PUBLIC_KEY;
-      if (!collectionPubkey) {
-        throw new Error('COLLECTION_PUBLIC_KEY is not set');
-      }
+//       const collectionPubkey = process.env.COLLECTION_PUBLIC_KEY;
+//       if (!collectionPubkey) {
+//         throw new Error('COLLECTION_PUBLIC_KEY is not set');
+//       }
   
-      const collectionKey = metaplexPublicKey(collectionPubkey);
-      const metadataUrl = getRegistrationMetaUrl();
-      console.log("🚀 ~ mintNft ~ metadataUrl:", metadataUrl)
+//       const collectionKey = metaplexPublicKey(collectionPubkey);
+//       const metadataUrl = getRegistrationMetaUrl();
+//       console.log("🚀 ~ mintNft ~ metadataUrl:", metadataUrl)
   
-      const { signature } = await mintV1(umi, {
-        leafOwner: newOwner,
-        merkleTree: merkleTreePubkey,
-        metadata: {
-          name: `${NFT_NAME}`,
-          symbol: "STDE2024", 
-          uri: metadataUrl,
-          sellerFeeBasisPoints: 0, 
-          collection: { key: collectionKey, verified: false },
-          creators: [
-            { address: umi.identity.publicKey, verified: true, share: 100 },
-          ],
-        },
-      }).sendAndConfirm(umi, { 
-        send: { commitment: 'confirmed' },
-        confirm: { commitment: 'confirmed' }
-      });
-      console.log("🚀 ~ mintNft ~ signature:", signature)
+//       const { signature } = await mintV1(umi, {
+//         leafOwner: newOwner,
+//         merkleTree: merkleTreePubkey,
+//         metadata: {
+//           name: `${NFT_NAME}`,
+//           symbol: "STDE2024", 
+//           uri: metadataUrl,
+//           sellerFeeBasisPoints: 0, 
+//           collection: { key: collectionKey, verified: false },
+//           creators: [
+//             { address: umi.identity.publicKey, verified: true, share: 100 },
+//           ],
+//         },
+//       }).sendAndConfirm(umi, { 
+//         send: { commitment: 'confirmed' },
+//         confirm: { commitment: 'confirmed' }
+//       });
+//       console.log("🚀 ~ mintNft ~ signature:", signature)
   
-      // Add delay to ensure transaction is processed
-      // await new Promise(resolve => setTimeout(resolve, 2000));
+//       // Add delay to ensure transaction is processed
+//       // await new Promise(resolve => setTimeout(resolve, 2000));
   
-      const leaf = await parseLeafFromMintV1Transaction(umi, signature);
-      const assetId = findLeafAssetIdPda(umi, {
-        merkleTree: merkleTreePubkey,
-        leafIndex: leaf.nonce,
-      })
-      console.log("🚀 ~ mintNft ~ assetId:", assetId)
+//       const leaf = await parseLeafFromMintV1Transaction(umi, signature);
+//       const assetId = findLeafAssetIdPda(umi, {
+//         merkleTree: merkleTreePubkey,
+//         leafIndex: leaf.nonce,
+//       })
+//       console.log("🚀 ~ mintNft ~ assetId:", assetId)
   
-      return assetId;
+//       return assetId;
   
-    }catch (error) {
-      console.error("🚀 ~ mintNft ~ error:", error)
-      throw error;
-    }
-  }
+//     }catch (error) {
+//       console.error("🚀 ~ mintNft ~ error:", error)
+//       throw error;
+//     }
+//   }
 
-const mint = async (imageUrl: string, publicKey: string): Promise<string> => {
-  const network = process.env.NETWORK;
-  console.log("🚀 ~ mint ~ network:", network)
-  if (!network) {
-    throw new Error('NETWORK environment variable is not set');
-  }
+// async function mint(imageUrl: string, publicKey: string): Promise<string> {
+//   const network = process.env.NETWORK;
+//   console.log("🚀 ~ mint ~ network:", network)
+//   if (!network) {
+//     throw new Error('NETWORK environment variable is not set');
+//   }
 
-  const umi = createUmi(network)
-    .use(mplBubblegum())
-      .use(mplTokenMetadata())
-      .use(dasApi());
+//   const umi = createUmi(network)
+//     .use(mplBubblegum())
+//       .use(mplTokenMetadata())
+//       .use(dasApi());
 
-  const privateKey = process.env.PAYER_PRIV;
-  if (!privateKey) {
-    throw new Error('PAYER_PRIV environment variable is not set');
-  }
+//   const privateKey = process.env.PAYER_PRIV;
+//   if (!privateKey) {
+//     throw new Error('PAYER_PRIV environment variable is not set');
+//   }
 
-  // Decode the Base64-encoded private key
-  const secretKeyBuffer = Buffer.from(privateKey, 'base64');
-  const secretKeyUint8Array = new Uint8Array(secretKeyBuffer);
+//   // Decode the Base64-encoded private key
+//   const secretKeyBuffer = Buffer.from(privateKey, 'base64');
+//   const secretKeyUint8Array = new Uint8Array(secretKeyBuffer);
 
-  // Create the keypair from the secret key
-  const keypair = umi.eddsa.createKeypairFromSecretKey(secretKeyUint8Array);
+//   // Create the keypair from the secret key
+//   const keypair = umi.eddsa.createKeypairFromSecretKey(secretKeyUint8Array);
 
-  // Set the keypair as the signer
-  umi.use(keypairIdentity(keypair));
+//   // Set the keypair as the signer
+//   umi.use(keypairIdentity(keypair));
 
-  const assetId = await mintNft(umi, publicKey);
-  console.log("🚀 ~ mint ~ assetId: ", assetId)
-  return assetId.toString();
-}
+//   const assetId = await mintNft(umi, publicKey);
+//   console.log("🚀 ~ mint ~ assetId: ", assetId)
+//   return assetId.toString();
+// }
 
 export async function POST(request: Request) {
   try {
