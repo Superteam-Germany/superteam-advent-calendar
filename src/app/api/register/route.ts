@@ -65,20 +65,20 @@ const mintNft = async (umi: Umi, userPublicKey: string) => {
             { address: umi.identity.publicKey, verified: true, share: 100 },
           ],
         },
-      }).sendAndConfirm(umi, { send: { commitment: 'finalized' } });
+      }).sendAndConfirm(umi, { send: { commitment: 'confirmed' } });
       console.log("🚀 ~ mintNft ~ signature:", signature)
   
       // Add delay to ensure transaction is processed
       // await new Promise(resolve => setTimeout(resolve, 2000));
   
-      const leaf = await parseLeafFromMintV1Transaction(umi, signature);
-      const assetId = findLeafAssetIdPda(umi, {
-        merkleTree: merkleTreePubkey,
-        leafIndex: leaf.nonce,
-      })
-      console.log("🚀 ~ mintNft ~ assetId:", assetId)
+      // const leaf = await parseLeafFromMintV1Transaction(umi, signature);
+      // const assetId = findLeafAssetIdPda(umi, {
+      //   merkleTree: merkleTreePubkey,
+      //   leafIndex: leaf.nonce,
+      // })
+      // console.log("🚀 ~ mintNft ~ assetId:", assetId)
   
-      return assetId;
+      // return assetId;
   
     }catch (error) {
       console.error("🚀 ~ mintNft ~ error:", error)
@@ -86,9 +86,8 @@ const mintNft = async (umi: Umi, userPublicKey: string) => {
     }
   }
 
-const mint = async (imageUrl: string, publicKey: string): Promise<string> => {
+const mint = async (imageUrl: string, publicKey: string) => {
   const network = process.env.NETWORK;
-  console.log("🚀 ~ mint ~ network:", network)
   if (!network) {
     throw new Error('NETWORK environment variable is not set');
   }
@@ -102,7 +101,6 @@ const mint = async (imageUrl: string, publicKey: string): Promise<string> => {
   if (!privateKey) {
     throw new Error('PAYER_PRIV environment variable is not set');
   }
-
   // Decode the Base64-encoded private key
   const secretKeyBuffer = Buffer.from(privateKey, 'base64');
   const secretKeyUint8Array = new Uint8Array(secretKeyBuffer);
@@ -112,10 +110,8 @@ const mint = async (imageUrl: string, publicKey: string): Promise<string> => {
 
   // Set the keypair as the signer
   umi.use(keypairIdentity(keypair));
-
   const assetId = await mintNft(umi, publicKey);
-  console.log("🚀 ~ mint ~ assetId: ", assetId)
-  return assetId.toString();
+  // return assetId.toString();
 }
 
 export async function POST(request: Request) {
@@ -156,7 +152,6 @@ export async function POST(request: Request) {
 
     // Check whitelist first
     const isWhitelisted = await isWalletWhitelisted(publicKey);
-    console.log("🚀 ~ POST ~ isWhitelisted:", isWhitelisted)
     
     if (!isWhitelisted) {
       return NextResponse.json(
@@ -187,12 +182,12 @@ export async function POST(request: Request) {
     // Save registration
     await db.insert(registrations).values({
       walletAddress: publicKey,
-      registrationTx,
       isActive: true
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("🚀 ~ POST ~ error:", error)
     return NextResponse.json(
       { error: `Failed to register: ${error}` },
       { status: 500 }
