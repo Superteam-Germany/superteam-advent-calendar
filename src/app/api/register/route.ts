@@ -101,11 +101,13 @@ const mint = async (imageUrl: string, publicKey: string): Promise<string> => {
       .use(mplTokenMetadata())
       .use(dasApi());
 
-  const walletFile = fs.readFileSync('./.keys/adventcalendar-wallet.json', 'utf8');
-  const walletData = JSON.parse(walletFile);
+  const privateKey = process.env.PAYER_PRIV;
+  if (!privateKey) {
+    throw new Error('PAYER_PRIV environment variable is not set');
+  }
 
   // Decode the Base64-encoded private key
-  const secretKeyBuffer = Buffer.from(walletData.privateKey, 'base64');
+  const secretKeyBuffer = Buffer.from(privateKey, 'base64');
   const secretKeyUint8Array = new Uint8Array(secretKeyBuffer);
 
   // Create the keypair from the secret key
