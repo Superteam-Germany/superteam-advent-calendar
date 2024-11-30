@@ -77,6 +77,7 @@ export async function POST(request: Request) {
         signature
       });
     } catch (error) {
+      console.error('Failed to generate signature:', error);
       return NextResponse.json(
         { error: 'Failed to generate signature' },
         { status: 500 }
@@ -84,6 +85,7 @@ export async function POST(request: Request) {
     }
 
   } catch (error) {
+    console.error("Eligibility check failed:", error);
     return NextResponse.json(
       { error: `Eligibility check failed: ${error}` },
       { status: 500 }
