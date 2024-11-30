@@ -91,6 +91,7 @@ const mintNft = async (umi: Umi, userPublicKey: string) => {
 
 const mint = async (imageUrl: string, publicKey: string): Promise<string> => {
   const network = process.env.NETWORK;
+  console.log("🚀 ~ mint ~ network:", network)
   if (!network) {
     throw new Error('NETWORK environment variable is not set');
   }
@@ -114,6 +115,7 @@ const mint = async (imageUrl: string, publicKey: string): Promise<string> => {
   umi.use(keypairIdentity(keypair));
 
   const assetId = await mintNft(umi, publicKey);
+  console.log("🚀 ~ mint ~ assetId:", assetId)
   return assetId.toString();
 }
 
@@ -155,6 +157,7 @@ export async function POST(request: Request) {
 
     // Check whitelist first
     const isWhitelisted = await isWalletWhitelisted(publicKey);
+    console.log("🚀 ~ POST ~ isWhitelisted:", isWhitelisted)
     
     if (!isWhitelisted) {
       return NextResponse.json(
@@ -176,9 +179,11 @@ export async function POST(request: Request) {
     }
 
     const imageUrl = getRegistrationImageUrl();
+    console.log("🚀 ~ POST ~ imageUrl:", imageUrl)
 
     // Mint registration NFT
     const registrationTx = await mint(imageUrl, publicKey);
+    console.log("🚀 ~ POST ~ registrationTx:", registrationTx)
 
     // Save registration
     await db.insert(registrations).values({
