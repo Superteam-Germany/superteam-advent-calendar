@@ -117,7 +117,7 @@ const mint = async (imageUrl: string, publicKey: string): Promise<string> => {
   umi.use(keypairIdentity(keypair));
 
   const assetId = await mintNft(umi, publicKey);
-  console.log("🚀 ~ mint ~ assetId:", assetId)
+  console.log("🚀 ~ mint ~ assetId: ", assetId)
   return assetId.toString();
 }
 
