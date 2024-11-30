@@ -16,7 +16,7 @@ export default function Home() {
   const [minting, setMinting] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const { scrollYProgress } = useScroll();
-  const y = useTransform(scrollYProgress, [0, 1], ['-40%', '-0%']);
+  const y = useTransform(scrollYProgress, [0, 1], ['-45%', '-0%']);
   const testmode = process.env.NEXT_PUBLIC_TESTMODE;
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export default function Home() {
         className="bg-[url('/images/backgrounds/line-wave-4-primary.svg')] -z-20 bg-50% bg-no-repeat w-full absolute h-[300vh]">
       </motion.div>
       
-      <div className="-mt-40 md:-mt-[40vh] relative">
+      <div className="-mt-20 lg:-mt-80 relative">
         <Image 
           src="/images/Sol-Santa.png" 
           alt="Sol-Santa" 
@@ -110,11 +110,11 @@ export default function Home() {
           height={1000}
           priority
         />
-        <h1 className="absolute bottom-[20%] left-1/2 -translate-x-1/2 text-4xl font-bold text-center text-white drop-shadow-lg max-w-2xl">
+        <h1 className="absolute lg:bottom-[20%] left-1/2 -translate-x-1/2 text-2xl lg:text-4xl font-bold text-center text-white drop-shadow-lg w-full lg:max-w-2xl">
           Santa is running on Solana this year!
         </h1>
       </div>
-      <div className="z-10 w-full max-w-5xl -mt-24">
+      <div className="z-10 w-full lg:max-w-5xl mt-24 lg:-mt-24">
         <BlurredCard>
           {!isRegistered ? (
             <div className="text-center p-8">

@@ -26,6 +26,8 @@ body {
   backdrop-filter: blur(16px) !important;
   letter-spacing: 0.05em !important;
   color: white !important;
+  max-width: 150px !important;
+  margin-right: 6px !important;
   transition: all 0.2s ease-in-out !important;
 }
 

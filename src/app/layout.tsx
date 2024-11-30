@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased mx-8 lg:mx-0`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased mx-0`}
       > 
         <WalletContextProvider>
           <Nav />
