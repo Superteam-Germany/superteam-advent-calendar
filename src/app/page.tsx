@@ -144,9 +144,9 @@ export default function Home() {
             </div>
           ) : (
             <>
-              {isBeforeDecFirst() && testmode === 'false' ? (
+              {/* {isBeforeDecFirst() && testmode === 'false' ? ( */}
                 <ComingSoonMessage />
-              ) : (
+              {/* ) : (
                 <>
                   <h2 className="text-2xl font-bold text-center m-4 mt-12">Open today's door to see if you won!</h2>
                   <p className="text-center text-sm text-gray-500 mb-12">
@@ -154,7 +154,7 @@ export default function Home() {
                   </p>
                   <Doors isRegistered={isRegistered} />
                 </>
-              )}
+              )} */}
               {/* <Sponsors /> */}
             </>
           )}
