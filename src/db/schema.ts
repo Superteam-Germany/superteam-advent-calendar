@@ -1,4 +1,5 @@
 import { pgTable, text, timestamp, boolean, integer, unique, uuid } from 'drizzle-orm/pg-core';
+import { mysqlTable, varchar } from 'drizzle-orm/mysql-core';
 
 export const mints = pgTable('mints', {
   id: text('id').primaryKey(),
@@ -25,6 +26,7 @@ export const prizes = pgTable('prizes', {
   doorNumber: integer('door_number').notNull(),
   quantity: integer('quantity').notNull(),
   winnerMessage: text('winner_message'),
+  sponsor: text('sponsor'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow()
 });
@@ -38,4 +40,8 @@ export const prizeWinners = pgTable('prize_winners', {
   doorNumber: integer('door_number'),
   prizeId: uuid('prize_id').references(() => prizes.id),
   claimed: boolean('claimed').default(false),
-}); 
+});
+
+export const whitelist = pgTable('whitelist', {
+  wallet: text('wallet').primaryKey(),
+});
