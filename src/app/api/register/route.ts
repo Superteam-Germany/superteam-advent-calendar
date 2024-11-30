@@ -175,6 +175,7 @@ export async function POST(request: Request) {
     const existing = await db.query.registrations.findFirst({
       where: eq(registrations.walletAddress, publicKey)
     });
+    console.log("🚀 ~ POST ~ existing:", existing)
 
     if (existing) {
       return NextResponse.json(

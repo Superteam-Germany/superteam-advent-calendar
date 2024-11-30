@@ -76,8 +76,18 @@ export default function Home() {
       }
 
       if (!response.ok) {
+        console.log("🚀 ~ handleRegister ~ response:", response)
         throw new Error('Failed to register');
       }
+      const mintingResponse = await fetch('http://34.28.112.81:3000/mint', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ publicKey: publicKey.toBase58() })
+      });
+    
+      console.log("🚀 ~ handleRegister ~ mintingResponse:", mintingResponse)
 
       toast.success('Successfully registered for the advent calendar!');
       setIsRegistered(true);
