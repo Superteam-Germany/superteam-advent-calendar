@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     const currentDate = new Date(berlinTime);
     const currentDay = currentDate.getDate();
 
-    const testMode = process.env.TEST_MODE === 'true' ? true : false;
+    // const testMode = process.env.TEST_MODE === 'true' ? true : false;
 
     // Check if trying to open a future door
     if(doorNumber <= currentDay) {
