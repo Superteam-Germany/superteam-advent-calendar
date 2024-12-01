@@ -81,18 +81,18 @@ export default function Doors({ isRegistered }: DoorsProps) {
         }),
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to check winner');
+        throw new Error(data.error || 'Failed to check winner');
       }
 
-      const data = await response.json();
       setWinnerState(data);
       setShowPopup(true);
       setOpenedDoors(prev => [...prev, {
         doorNumber: doorNumber,
         isEligibleForRaffle: data.isWinner,
-        nftAddress: data.nftAddress
+        nftAddress: data.nftAddress || 'opened'
       }]);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong');
