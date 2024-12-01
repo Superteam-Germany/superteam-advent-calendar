@@ -74,7 +74,7 @@ export default function WinnerPopup({ isOpen, onClose, isWinner, prize, alreadyC
                     </button>
                     <div className="relative w-full aspect-[16/9] flex-none">
                       <Image
-                        src={`/images/adventcalendar-prizes/${prize?.doorNumber?.toString().padStart(2, '0') || '00'}.png`}
+                        src={`/images/adventcalendar-prizes/${prize?.doorNumber?.toString().padStart(2, '0') || '00'}-prize.png`}
                         alt={prize?.name || 'Prize'}
                         fill
                         className="object-contain"
