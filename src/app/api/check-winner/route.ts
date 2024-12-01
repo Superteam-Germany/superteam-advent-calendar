@@ -2,10 +2,43 @@ import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { registrations, prizeWinners, prizes } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { PublicKey } from '@solana/web3.js';
+import * as nacl from 'tweetnacl';
 
 export async function POST(request: Request) {
   try {
-    const { doorNumber, publicKey } = await request.json();
+    const { doorNumber, publicKey, signature, message } = await request.json();
+
+    if (!publicKey || !signature || !message) {
+      return NextResponse.json(
+        { error: 'Missing authentication parameters' },
+        { status: 400 }
+      );
+    }
+
+    try {
+      const publicKeyBytes = new PublicKey(publicKey).toBytes();
+      const messageBytes = new TextEncoder().encode(message);
+      const signatureBytes = Buffer.from(signature, 'base64');
+      
+      const verified = nacl.sign.detached.verify(
+        messageBytes,
+        signatureBytes,
+        publicKeyBytes
+      );
+
+      if (!verified) {
+        return NextResponse.json(
+          { error: 'Invalid signature' },
+          { status: 401 }
+        );
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Signature verification failed' },
+        { status: 401 }
+      );
+    }
 
     // Get current date in Berlin timezone
     const berlinTime = new Date().toLocaleString('en-US', { timeZone: 'Europe/Berlin' });
