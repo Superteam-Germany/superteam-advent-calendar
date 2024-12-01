@@ -34,8 +34,9 @@ export async function POST(request: Request) {
         );
       }
     } catch (error) {
+      console.error("🚀 ~ POST ~ error:", error)
       return NextResponse.json(
-        { error: 'Signature verification failed' },
+        { error: `Signature verification failed` },
         { status: 401 }
       );
     }
