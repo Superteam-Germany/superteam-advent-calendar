@@ -144,18 +144,11 @@ export default function Home() {
             </div>
           ) : (
             <>
-              {isBeforeDecFirst() && testmode === 'false' ? (
-                <ComingSoonMessage />
-              ) : (
-                <>
-                  <h2 className="text-2xl font-bold text-center m-4 mt-12">Open today's door to see if you won!</h2>
-                  <p className="text-center text-sm text-gray-500 mb-12">
-                    You're registered for all daily raffles. Open doors to reveal your prizes!
-                  </p>
-                  <Doors isRegistered={isRegistered} />
-                </>
-              )}
-              {/* <Sponsors /> */}
+              <h2 className="text-2xl font-bold text-center m-4 mt-12">Open today's door to see if you won!</h2>
+              <p className="text-center text-sm text-gray-500 mb-12">
+                You're registered for all daily raffles. Open doors to reveal your prizes!
+              </p>
+              <Doors isRegistered={isRegistered} />
             </>
           )}
         </BlurredCard>

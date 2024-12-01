@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { registrations, prizeWinners } from '@/db/schema';
+import { registrations, prizeWinners, prizes } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export async function POST(request: Request) {
   try {
     const { doorNumber, publicKey } = await request.json();
+    console.log("🚀 ~ POST ~ publicKey:", publicKey)
+    console.log("🚀 ~ POST ~ doorNumber:", doorNumber)
     
     // Check if user is registered
     const registration = await db.query.registrations.findFirst({
@@ -31,29 +33,37 @@ export async function POST(request: Request) {
         eq(prizeWinners.doorNumber, doorNumber),
       )
     });
+    
 
     if (winner) {
+      if(!winner.prizeId) {
+        console.error("Winner has no prize assigned")
+        return NextResponse.json({
+          isWinner: false,
+          prize: null,
+          alreadyClaimed: winner.claimed
+        });
+      }
+      const prize = await db.query.prizes.findFirst({
+        where: eq(prizes.id, winner.prizeId)
+      });
+      console.log("🚀 ~ POST ~ prize:", prize)
+      console.log("🚀 ~ POST ~ winner:", winner)
       return NextResponse.json({
         isWinner: true,
-        prize: winner.prizeId,
+        prize: prize,
         alreadyClaimed: winner.claimed
       });
     }
-
-    // TODO: Implement actual winner selection logic
-    const isWinner = Math.random() > 0.5;
-    const prize = "1 SOL";
-
-    if (isWinner) {
-      await db.insert(prizeWinners).values({
-        walletAddress: publicKey,
-        doorNumber,
-        prizeId: prize
+    else {
+      return NextResponse.json({
+        isWinner: false,
+        prize: null,
+        alreadyClaimed: false
       });
     }
-
-    return NextResponse.json({ isWinner, prize });
   } catch (error) {
+    console.error("🚀 ~ POST ~ error:", error)
     return NextResponse.json(
       { error: `Failed to check winner: ${error}` },
       { status: 500 }
