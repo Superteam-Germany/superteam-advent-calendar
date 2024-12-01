@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import confetti from 'canvas-confetti';
+
 interface Prize {
   id: string;
   name: string;
@@ -10,6 +11,7 @@ interface Prize {
   imageUrl: string;
   winnerMessage: string;
   doorNumber: number;
+  sponsor?: string;
 }
 
 interface WinnerPopupProps {
@@ -60,6 +62,14 @@ export default function WinnerPopup({ isOpen, onClose, isWinner, prize, alreadyC
               <Dialog.Panel className="w-full max-w-md transform overflow-hidden text-left align-middle transition-all bg-slate-950 shadow-2xl sm:rounded-3xl">
                 {isWinner ? (
                   <div className="flex flex-col h-[600px]">
+                    <button
+                      onClick={onClose}
+                      className="absolute top-4 right-4 text-white/60 hover:text-white z-10 p-2"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                     <div className="relative w-full aspect-[16/9] flex-none">
                       <Image
                         src={`/images/adventcalendar-prizes/${prize?.doorNumber?.toString().padStart(2, '0') || '00'}.png`}
@@ -70,8 +80,7 @@ export default function WinnerPopup({ isOpen, onClose, isWinner, prize, alreadyC
                       />
                     </div>
                     <div className="p-8 flex-1 flex flex-col justify-between">
-                      <div>
-                      </div>
+                      <div></div>
                       <div>
                         <Dialog.Title
                           as="h3"
@@ -91,18 +100,37 @@ export default function WinnerPopup({ isOpen, onClose, isWinner, prize, alreadyC
                           </div>
                         )}
                       </div>
-                      <div className="mt-8 flex justify-center">
-                        <button
-                          className='bg-white shadow-2xl backdrop-blur-xl tracking-wide text-black px-6 py-3 rounded-md font-bold cursor-pointer'
-                          onClick={onClose}
-                        >
-                          {"Got it!"}
-                        </button>
-                      </div>
+                      {isWinner && !alreadyClaimed && (
+                        <div className="flex flex-col items-center">
+                          <a
+                            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                              `🎉 Just won a ${prize?.name} from the @SuperteamDE advent calendar!${
+                                prize?.sponsor ? ` Thanks ${prize.sponsor}!` : ''
+                              }`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className='bg-white shadow-2xl backdrop-blur-xl tracking-wide text-black px-6 py-3 rounded-md font-bold cursor-pointer flex items-center gap-2 hover:bg-slate-200 transition-colors'
+                          >
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                            </svg>
+                            Share your win on X
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (
-                  <div className="p-12">
+                  <div className="p-12 relative">
+                    <button
+                      onClick={onClose}
+                      className="absolute top-4 right-4 text-white/60 hover:text-white z-10 p-2"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                     <Dialog.Title
                       as="h3"
                       className="text-2xl font-bold leading-6 text-white text-center m-4"
@@ -112,14 +140,6 @@ export default function WinnerPopup({ isOpen, onClose, isWinner, prize, alreadyC
                     <p className="text-white text-center p-4">
                       Better luck next time! Come back tomorrow for another chance to win.
                     </p>
-                    <div className="mt-6 flex justify-center">
-                    <button
-                          className='bg-white shadow-2xl backdrop-blur-xl tracking-wide text-black px-6 py-3 rounded-md font-bold cursor-pointer'
-                          onClick={onClose}
-                        >
-                        Close
-                      </button>
-                    </div>
                   </div>
                 )}
               </Dialog.Panel>
