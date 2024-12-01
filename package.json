@@ -23,6 +23,7 @@
     "@solana/wallet-adapter-react-ui": "^0.9.35",
     "@solana/wallet-adapter-wallets": "^0.19.32",
     "arweave": "^1.15.5",
+    "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.0",
     "drizzle-orm": "^0.36.3",
     "framer-motion": "^11.11.17",
@@ -37,6 +38,7 @@
     "uuid": "^11.0.3"
   },
   "devDependencies": {
+    "@types/canvas-confetti": "^1.6.4",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

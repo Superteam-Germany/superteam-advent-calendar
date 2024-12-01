@@ -6,8 +6,19 @@ import { eq, and } from 'drizzle-orm';
 export async function POST(request: Request) {
   try {
     const { doorNumber, publicKey } = await request.json();
-    console.log("🚀 ~ POST ~ publicKey:", publicKey)
-    console.log("🚀 ~ POST ~ doorNumber:", doorNumber)
+
+    // Get current date in Berlin timezone
+    const berlinTime = new Date().toLocaleString('en-US', { timeZone: 'Europe/Berlin' });
+    const currentDate = new Date(berlinTime);
+    const currentDay = currentDate.getDate();
+
+    // Check if trying to open a future door
+    if (doorNumber > currentDay) {
+      return NextResponse.json(
+        { error: "This door cannot be opened yet!" },
+        { status: 403 }
+      );
+    }
     
     // Check if user is registered
     const registration = await db.query.registrations.findFirst({
@@ -25,7 +36,7 @@ export async function POST(request: Request) {
     }
 
     // Convert Date to YYYY-MM-DD format
-    // const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
 
     const winner = await db.query.prizeWinners.findFirst({
       where: and(
@@ -47,8 +58,7 @@ export async function POST(request: Request) {
       const prize = await db.query.prizes.findFirst({
         where: eq(prizes.id, winner.prizeId)
       });
-      console.log("🚀 ~ POST ~ prize:", prize)
-      console.log("🚀 ~ POST ~ winner:", winner)
+      
       return NextResponse.json({
         isWinner: true,
         prize: prize,

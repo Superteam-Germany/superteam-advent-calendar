@@ -3,6 +3,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useState } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
+import WinnerPopup from '@/components/WinnerPopup';
 
 const doors = [7, 19, 3, 9, 11, 22, 5, 12, 8, 1, 16, 14, 20, 17, 24, 18, 23, 15, 13, 2, 4, 6, 21, 10];
 
@@ -13,7 +14,12 @@ interface DoorsProps {
 export default function Doors({ isRegistered }: DoorsProps) {
   const { connected, publicKey } = useWallet();
   const [checking, setChecking] = useState(false);
-  // const [selectedDoor, setSelectedDoor] = useState<number | null>(null);
+  const [showPopup, setShowPopup] = useState(false);
+  const [winnerState, setWinnerState] = useState<{
+    isWinner: boolean;
+    prize: any;
+    alreadyClaimed: boolean;
+  } | null>(null);
 
   const handleOpenDoor = async (doorNumber: number) => {
     if (!connected || !publicKey) {
@@ -28,7 +34,6 @@ export default function Doors({ isRegistered }: DoorsProps) {
 
     try {
       setChecking(true);
-      // setSelectedDoor(doorNumber);
 
       const response = await fetch('/api/check-winner', {
         method: 'POST',
@@ -46,12 +51,9 @@ export default function Doors({ isRegistered }: DoorsProps) {
         throw new Error(errorData.error || 'Failed to check winner');
       }
 
-      const { isWinner, prize } = await response.json();
-      if (isWinner) {
-        toast.success(`Congratulations! You won ${prize}!`);
-      } else {
-        toast.error('Better luck next time!');
-      }
+      const data = await response.json();
+      setWinnerState(data);
+      setShowPopup(true);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -60,33 +62,45 @@ export default function Doors({ isRegistered }: DoorsProps) {
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
-      {doors.map((doorNumber) => (
-        <button
-          key={doorNumber}
-          onClick={() => handleOpenDoor(doorNumber)}
-          disabled={checking || !connected || !isRegistered}
-          className={`
-            aspect-square
-            rounded-lg
-            flex
-            items-center
-            justify-center
-            transition-all
-            overflow-hidden
-            ${checking ? 'cursor-not-allowed' : 'hover:scale-105'}
-            ${(!connected || !isRegistered) ? 'opacity-50 cursor-not-allowed' : ''}
-          `}
-        >
-          <Image
-            src={`/images/door${doorNumber.toString().padStart(2, '0')}.png`}
-            alt={`Door ${doorNumber}`}
-            width={200}
-            height={200}
-            className="w-full h-full object-cover"
-          />
-        </button>
-      ))}
-    </div>
+    <>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+        {doors.map((doorNumber) => (
+          <button
+            key={doorNumber}
+            onClick={() => handleOpenDoor(doorNumber)}
+            disabled={checking || !connected || !isRegistered}
+            className={`
+              aspect-square
+              rounded-lg
+              flex
+              items-center
+              justify-center
+              transition-all
+              overflow-hidden
+              ${checking ? 'cursor-not-allowed' : 'hover:scale-105'}
+              ${(!connected || !isRegistered) ? 'opacity-50 cursor-not-allowed' : ''}
+            `}
+          >
+            <Image
+              src={`/images/door${doorNumber.toString().padStart(2, '0')}.png`}
+              alt={`Door ${doorNumber}`}
+              width={200}
+              height={200}
+              className="w-full h-full object-cover"
+            />
+          </button>
+        ))}
+      </div>
+
+      {winnerState && (
+        <WinnerPopup
+          isOpen={showPopup}
+          onClose={() => setShowPopup(false)}
+          isWinner={winnerState.isWinner}
+          prize={winnerState.prize}
+          alreadyClaimed={winnerState.alreadyClaimed}
+        />
+      )}
+    </>
   );
 }
