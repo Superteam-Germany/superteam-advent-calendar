@@ -12,7 +12,7 @@ interface DoorsProps {
 }
 
 export default function Doors({ isRegistered }: DoorsProps) {
-  const { connected, publicKey } = useWallet();
+  const { connected, publicKey, signMessage } = useWallet();
   const [checking, setChecking] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [winnerState, setWinnerState] = useState<{
@@ -35,14 +35,24 @@ export default function Doors({ isRegistered }: DoorsProps) {
     try {
       setChecking(true);
 
+      if (!signMessage) {
+        toast.error('Wallet does not support message signing');
+        return;
+      }
+
+      const message = `Check winner for door ${doorNumber}`;
+      const messageBytes = new TextEncoder().encode(message);
+      
+      const signature = await signMessage(messageBytes);
+
       const response = await fetch('/api/check-winner', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           doorNumber,
-          publicKey: publicKey.toBase58() 
+          publicKey: publicKey.toBase58(),
+          signature: Buffer.from(signature).toString('base64'),
+          message
         }),
       });
 
