@@ -9,7 +9,6 @@ import { motion } from 'framer-motion';
 import { useScroll, useTransform } from 'framer-motion';
 import { BlurredCard } from '@/components/blurred-card';
 import Doors from './sections/doors';
-import { ComingSoonMessage } from '@/components/ComingSoonMessage';
 
 export default function Home() {
   const { connected, publicKey, signMessage } = useWallet();
@@ -17,7 +16,6 @@ export default function Home() {
   const [isRegistered, setIsRegistered] = useState(false);
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], ['-45%', '-0%']);
-  const testmode = process.env.NEXT_PUBLIC_TESTMODE;
 
   useEffect(() => {
     if (publicKey) {
@@ -96,12 +94,6 @@ export default function Home() {
     } finally {
       setMinting(false);
     }
-  };
-
-  const isBeforeDecFirst = () => {
-    const now = new Date();
-    const decFirst = new Date('2024-12-01T00:00:00Z'); // UTC time
-    return now < decFirst;
   };
 
   return (

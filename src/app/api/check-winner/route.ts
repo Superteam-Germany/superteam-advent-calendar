@@ -35,9 +35,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Convert Date to YYYY-MM-DD format
-    const today = new Date().toISOString().split('T')[0];
-
     const winner = await db.query.prizeWinners.findFirst({
       where: and(
         eq(prizeWinners.walletAddress, publicKey),
@@ -58,7 +55,7 @@ export async function POST(request: Request) {
       const prize = await db.query.prizes.findFirst({
         where: eq(prizes.id, winner.prizeId)
       });
-      
+
       return NextResponse.json({
         isWinner: true,
         prize: prize,
