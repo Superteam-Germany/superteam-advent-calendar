@@ -40,7 +40,7 @@ export default function Doors({ isRegistered }: DoorsProps) {
         return;
       }
 
-      const message = `Check winner for door ${doorNumber}`;
+      const message = `Open door ${doorNumber}`;
       const messageBytes = new TextEncoder().encode(message);
       
       const signature = await signMessage(messageBytes);
