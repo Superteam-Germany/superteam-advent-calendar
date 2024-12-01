@@ -1,7 +1,7 @@
 import { pgTable, text, timestamp, boolean, integer, unique, uuid } from 'drizzle-orm/pg-core';
 
 export const mints = pgTable('mints', {
-  id: text('id').primaryKey(),
+  id: text('id').primaryKey(), // TODO: change to uuid
   walletAddress: text('wallet_address').notNull(),
   doorNumber: integer('door_number').notNull(),
   mintedAt: timestamp('minted_at').defaultNow().notNull(),

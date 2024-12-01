@@ -22,6 +22,8 @@ interface WinnerPopupProps {
   alreadyClaimed: boolean;
 }
 
+const X_MSG = 'Please share your win ❤️';
+
 export default function WinnerPopup({ isOpen, onClose, isWinner, prize, alreadyClaimed }: WinnerPopupProps) {
   React.useEffect(() => {
     if (isOpen && isWinner && !alreadyClaimed) {
@@ -59,7 +61,7 @@ export default function WinnerPopup({ isOpen, onClose, isWinner, prize, alreadyC
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden text-left align-middle transition-all bg-slate-950 shadow-2xl sm:rounded-3xl">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden text-left align-middle transition-all bg-slate-950 shadow-2xl rounded-2xl">
                 {isWinner ? (
                   <div className="flex flex-col h-[600px]">
                     <button
@@ -72,7 +74,7 @@ export default function WinnerPopup({ isOpen, onClose, isWinner, prize, alreadyC
                     </button>
                     <div className="relative w-full aspect-[16/9] flex-none">
                       <Image
-                        src={`/images/adventcalendar-prizes/${prize?.doorNumber?.toString().padStart(2, '0') || '00'}.png`}
+                        src={`/images/adventcalendar-prizes/${prize?.doorNumber?.toString().padStart(2, '0') || '00'}-prize.png`}
                         alt={prize?.name || 'Prize'}
                         fill
                         className="object-contain"
@@ -105,7 +107,7 @@ export default function WinnerPopup({ isOpen, onClose, isWinner, prize, alreadyC
                           <a
                             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
                               `🎉 Just won a ${prize?.name} from the @SuperteamDE advent calendar!${
-                                prize?.sponsor ? ` Thanks ${prize.sponsor}!` : ''
+                                prize?.sponsor ? ` Huge thanks to our amazing sponsor ${prize.sponsor} for making this incredible prize possible!` : ''
                               }`
                             )}`}
                             target="_blank"
@@ -115,7 +117,7 @@ export default function WinnerPopup({ isOpen, onClose, isWinner, prize, alreadyC
                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                             </svg>
-                            Share your win on X
+                            {X_MSG}
                           </a>
                         </div>
                       )}

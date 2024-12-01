@@ -1,6 +1,6 @@
 'use client';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import WinnerPopup from '@/components/WinnerPopup';
@@ -11,15 +11,40 @@ interface DoorsProps {
   isRegistered: boolean;
 }
 
+interface OpenedDoor {
+  doorNumber: number;
+  isEligibleForRaffle: boolean;
+  nftAddress: string;
+}
+
 export default function Doors({ isRegistered }: DoorsProps) {
   const { connected, publicKey, signMessage } = useWallet();
   const [checking, setChecking] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [openedDoors, setOpenedDoors] = useState<OpenedDoor[]>([]);
   const [winnerState, setWinnerState] = useState<{
     isWinner: boolean;
     prize: any;
     alreadyClaimed: boolean;
   } | null>(null);
+
+  useEffect(() => {
+    const fetchOpenedDoors = async () => {
+      if (!publicKey) return;
+      
+      try {
+        const response = await fetch(`/api/opened-doors?wallet=${publicKey.toBase58()}`);
+        if (response.ok) {
+          const data = await response.json();
+          setOpenedDoors(data.openedDoors);
+        }
+      } catch (error) {
+        console.error('Failed to fetch opened doors:', error);
+      }
+    };
+
+    fetchOpenedDoors();
+  }, [publicKey]);
 
   const handleOpenDoor = async (doorNumber: number) => {
     if (!connected || !publicKey) {
@@ -40,7 +65,7 @@ export default function Doors({ isRegistered }: DoorsProps) {
         return;
       }
 
-      const message = `Check winner for door ${doorNumber}`;
+      const message = `Open door ${doorNumber}`;
       const messageBytes = new TextEncoder().encode(message);
       
       const signature = await signMessage(messageBytes);
@@ -56,14 +81,19 @@ export default function Doors({ isRegistered }: DoorsProps) {
         }),
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to check winner');
+        throw new Error(data.error || 'Failed to check winner');
       }
 
-      const data = await response.json();
       setWinnerState(data);
       setShowPopup(true);
+      setOpenedDoors(prev => [...prev, {
+        doorNumber: doorNumber,
+        isEligibleForRaffle: data.isWinner,
+        nftAddress: data.nftAddress || 'opened'
+      }]);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -87,17 +117,34 @@ export default function Doors({ isRegistered }: DoorsProps) {
               justify-center
               transition-all
               overflow-hidden
+              relative
               ${checking ? 'cursor-not-allowed' : 'hover:scale-105'}
               ${(!connected || !isRegistered) ? 'opacity-50 cursor-not-allowed' : ''}
             `}
           >
-            <Image
-              src={`/images/door${doorNumber.toString().padStart(2, '0')}.png`}
-              alt={`Door ${doorNumber}`}
-              width={200}
-              height={200}
-              className="w-full h-full object-cover"
-            />
+            {openedDoors.find((door: OpenedDoor) => door.doorNumber === doorNumber)?.nftAddress !== 'opened' ? (
+              <Image
+                src={`/images/door${doorNumber.toString().padStart(2, '0')}.png`}
+                alt={`Door ${doorNumber}`}
+                width={200}
+                height={200}
+                className="w-full h-full object-cover"
+              />):
+              openedDoors.find((door: OpenedDoor) => door.doorNumber === doorNumber)?.isEligibleForRaffle ? (
+                <Image
+                  src={`/images/adventcalendar-prizes/${doorNumber.toString().padStart(2, '0')}.png`}
+                  alt={`Prize ${doorNumber}`}
+                  width={200}
+                  height={200}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="text-white font-bold text-lg drop-shadow-md bg-slate-950 w-full h-full flex flex-col items-center justify-center">
+                  <p className="text-4xl">🎄</p>
+                  <p>Better luck</p>
+                  <p>next time!</p>
+                </div>
+              )}
           </button>
         ))}
       </div>
