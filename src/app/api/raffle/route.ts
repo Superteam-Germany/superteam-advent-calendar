@@ -25,12 +25,12 @@ async function isValidRequest(req: Request) {
 }
 
 async function getDay() {
-//   const today = new Date();
-const today = new Date('2024-12-02');
+  const today = new Date();
+// const today = new Date('2024-12-02');
   // Only run between Dec 1 and Dec 24
-//   if (today.getMonth() !== 11 || today.getDate() > 24 || today.getDate() < 1) {
-//     throw new Error('Raffle only runs during December 1-24');
-//   }
+  if (today.getMonth() !== 11 || today.getDate() > 24 || today.getDate() < 1) {
+    throw new Error('Raffle only runs during December 1-24');
+  }
   return today.getDate();
 }
 
