@@ -47,10 +47,9 @@ export async function POST(request: Request) {
     const currentDay = currentDate.getDate();
 
     const testMode = process.env.TEST_MODE === 'true' ? true : false;
-    console.log("🚀 ~ POST ~ testMode:", testMode)
 
     // Check if trying to open a future door
-    if(!testMode || doorNumber > currentDay) {
+    if(doorNumber <= currentDay) {
     
       // Check if user is registered
       const registration = await db.query.registrations.findFirst({
@@ -92,8 +91,6 @@ export async function POST(request: Request) {
           // Continue with the flow, don't block the user
         }
       }
-  
-      
 
       if (winner) {
         if(!winner.prizeId) {
