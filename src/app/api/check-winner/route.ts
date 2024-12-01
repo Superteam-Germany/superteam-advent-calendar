@@ -1,11 +1,24 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { registrations, prizeWinners } from '@/db/schema';
+import { registrations, prizeWinners, prizes } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export async function POST(request: Request) {
   try {
     const { doorNumber, publicKey } = await request.json();
+
+    // Get current date in Berlin timezone
+    const berlinTime = new Date().toLocaleString('en-US', { timeZone: 'Europe/Berlin' });
+    const currentDate = new Date(berlinTime);
+    const currentDay = currentDate.getDate();
+
+    // Check if trying to open a future door
+    if (doorNumber > currentDay) {
+      return NextResponse.json(
+        { error: "This door cannot be opened yet!" },
+        { status: 403 }
+      );
+    }
     
     // Check if user is registered
     const registration = await db.query.registrations.findFirst({
@@ -22,38 +35,42 @@ export async function POST(request: Request) {
       );
     }
 
-    // Convert Date to YYYY-MM-DD format
-    // const today = new Date().toISOString().split('T')[0];
-
     const winner = await db.query.prizeWinners.findFirst({
       where: and(
         eq(prizeWinners.walletAddress, publicKey),
         eq(prizeWinners.doorNumber, doorNumber),
       )
     });
+    
 
     if (winner) {
+      if(!winner.prizeId) {
+        console.error("Winner has no prize assigned")
+        return NextResponse.json({
+          isWinner: false,
+          prize: null,
+          alreadyClaimed: winner.claimed
+        });
+      }
+      const prize = await db.query.prizes.findFirst({
+        where: eq(prizes.id, winner.prizeId)
+      });
+
       return NextResponse.json({
         isWinner: true,
-        prize: winner.prizeId,
+        prize: prize,
         alreadyClaimed: winner.claimed
       });
     }
-
-    // TODO: Implement actual winner selection logic
-    const isWinner = Math.random() > 0.5;
-    const prize = "1 SOL";
-
-    if (isWinner) {
-      await db.insert(prizeWinners).values({
-        walletAddress: publicKey,
-        doorNumber,
-        prizeId: prize
+    else {
+      return NextResponse.json({
+        isWinner: false,
+        prize: null,
+        alreadyClaimed: false
       });
     }
-
-    return NextResponse.json({ isWinner, prize });
   } catch (error) {
+    console.error("🚀 ~ POST ~ error:", error)
     return NextResponse.json(
       { error: `Failed to check winner: ${error}` },
       { status: 500 }

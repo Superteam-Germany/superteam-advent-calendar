@@ -8,8 +8,7 @@ import { Spinner } from '@/components/Spinner';
 import { motion } from 'framer-motion';
 import { useScroll, useTransform } from 'framer-motion';
 import { BlurredCard } from '@/components/blurred-card';
-// import Doors from './sections/doors';
-import { ComingSoonMessage } from '@/components/ComingSoonMessage';
+import Doors from './sections/doors';
 
 export default function Home() {
   const { connected, publicKey, signMessage } = useWallet();
@@ -17,7 +16,6 @@ export default function Home() {
   const [isRegistered, setIsRegistered] = useState(false);
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], ['-45%', '-0%']);
-  // const testmode = process.env.NEXT_PUBLIC_TESTMODE;
 
   useEffect(() => {
     if (publicKey) {
@@ -98,12 +96,6 @@ export default function Home() {
     }
   };
 
-  // const isBeforeDecFirst = () => {
-  //   const now = new Date();
-  //   const decFirst = new Date('2024-12-01T00:00:00Z'); // UTC time
-  //   return now < decFirst;
-  // };
-
   return (
     <main className="flex min-h-screen flex-col items-center p-8 md:p-24">
       <Toaster position="top-center" />
@@ -144,18 +136,11 @@ export default function Home() {
             </div>
           ) : (
             <>
-              {/* {isBeforeDecFirst() && testmode === 'false' ? ( */}
-                <ComingSoonMessage />
-              {/* ) : (
-                <>
-                  <h2 className="text-2xl font-bold text-center m-4 mt-12">Open today's door to see if you won!</h2>
-                  <p className="text-center text-sm text-gray-500 mb-12">
-                    You're registered for all daily raffles. Open doors to reveal your prizes!
-                  </p>
-                  <Doors isRegistered={isRegistered} />
-                </>
-              )} */}
-              {/* <Sponsors /> */}
+              <h2 className="text-2xl font-bold text-center m-4 mt-12">Open today's door to see if you won!</h2>
+              <p className="text-center text-sm text-gray-500 mb-12">
+                You're registered for all daily raffles. Open doors to reveal your prizes!
+              </p>
+              <Doors isRegistered={isRegistered} />
             </>
           )}
         </BlurredCard>
