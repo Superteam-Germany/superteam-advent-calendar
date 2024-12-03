@@ -22,7 +22,35 @@ interface WinnerPopupProps {
   alreadyClaimed: boolean;
 }
 
+
+
 const X_MSG = 'Please share your win ❤️';
+
+const getInstruction = (prize: Prize) => {
+  switch (prize.description) {
+    case 'physical':
+      return (
+        <div className="text-slate-400 text-center text-sm">
+          You can pick up your prize at the next Co-working Friday!<br/>
+          If you don't live in Berlin, please contact Carlo.
+        </div>
+      );
+    case 'digital asset':
+      return (
+        <div className="text-slate-400 text-center text-sm">
+          Your prize will be transferred to your wallet soon.
+        </div>
+      );
+    case 'drip':
+      return (
+        <div className="text-slate-400 text-center text-sm">
+          Please send your <a className="underline text-slate-300" href="https://drip.haus" target="_blank" rel="noopener noreferrer">Drip</a> address to Carlo, so we can transfer your prize.
+        </div>
+      );
+    default:
+      return '';
+  }
+}
 
 export default function WinnerPopup({ isOpen, onClose, isWinner, prize, alreadyClaimed }: WinnerPopupProps) {
   React.useEffect(() => {
@@ -95,12 +123,7 @@ export default function WinnerPopup({ isOpen, onClose, isWinner, prize, alreadyC
                             <p className="text-white text-center mb-4 text-lg leading-relaxed">
                               {prize.winnerMessage}
                             </p>
-                            {prize.description == 'digital asset' ? <div className="text-slate-400 text-center text-sm">
-                              Your prize will be transferred to your wallet soon.
-                            </div> : <div className="text-slate-400 text-center text-sm">
-                              You can pick up your prize at the next Co-working Friday!<br/>
-                              If you don't live in Berlin, please contact Carlo.
-                            </div>}
+                            {getInstruction(prize)}
                           </div>
                         )}
                       </div>
