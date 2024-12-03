@@ -95,10 +95,12 @@ export default function WinnerPopup({ isOpen, onClose, isWinner, prize, alreadyC
                             <p className="text-white text-center mb-4 text-lg leading-relaxed">
                               {prize.winnerMessage}
                             </p>
-                            <div className="text-slate-400 text-center text-sm">
+                            {prize.description == 'digital asset' ? <div className="text-slate-400 text-center text-sm">
+                              Your prize will be transferred to your wallet soon.
+                            </div> : <div className="text-slate-400 text-center text-sm">
                               You can pick up your prize at the next Co-working Friday!<br/>
                               If you don't live in Berlin, please contact Carlo.
-                            </div>
+                            </div>}
                           </div>
                         )}
                       </div>
