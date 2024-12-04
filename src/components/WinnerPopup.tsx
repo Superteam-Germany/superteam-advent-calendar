@@ -28,13 +28,6 @@ const X_MSG = 'Please share your win ❤️';
 
 const getInstruction = (prize: Prize) => {
   switch (prize.description) {
-    case 'physical':
-      return (
-        <div className="text-slate-400 text-center text-sm">
-          You can pick up your prize at the next Co-working Friday!<br/>
-          If you don't live in Berlin, please contact Carlo.
-        </div>
-      );
     case 'digital asset':
       return (
         <div className="text-slate-400 text-center text-sm">
@@ -48,7 +41,12 @@ const getInstruction = (prize: Prize) => {
         </div>
       );
     default:
-      return '';
+      return (
+        <div className="text-slate-400 text-center text-sm">
+          You can pick up your prize at the next Co-working Friday!<br/>
+          If you don't live in Berlin, please contact Carlo.
+        </div>
+      );
   }
 }
 
