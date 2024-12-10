@@ -130,7 +130,7 @@ export default function WinnerPopup({ isOpen, onClose, isWinner, prize, alreadyC
                           <a
                             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
                               `🎉 Just won a ${prize?.name} from the @SuperteamDE advent calendar!${
-                                prize?.sponsor ? ` Huge thanks to our amazing sponsor ${prize.sponsor} for making this incredible prize possible!` : ''
+                                prize?.sponsor && !prize.sponsor.includes('Superteam') ? ` Huge thanks to our amazing sponsor ${prize.sponsor} for making this incredible prize possible!` : ''
                               }`
                             )}`}
                             target="_blank"
