@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     // const testMode = process.env.TEST_MODE === 'true' ? true : false;
 
     // Check if trying to open a future door
-    if(doorNumber <= currentDay) {
+    // if(doorNumber <= currentDay) {
     
       // Check if user is registered
       const registration = await db.query.registrations.findFirst({
@@ -118,12 +118,12 @@ export async function POST(request: Request) {
           alreadyClaimed: false
         });
       }
-    }else{
-      return NextResponse.json(
-        { error: "This door cannot be opened yet!" },
-        { status: 403 }
-      );
-    }
+    // }else{
+    //   return NextResponse.json(
+    //     { error: "This door cannot be opened yet!" },
+    //     { status: 403 }
+    //   );
+    // }
   } catch (error) {
     console.error("🚀 ~ POST ~ error:", error)
     return NextResponse.json(
