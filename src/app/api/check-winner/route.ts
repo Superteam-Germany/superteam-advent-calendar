@@ -42,9 +42,9 @@ export async function POST(request: Request) {
       );
     }
     // Get current date in Berlin timezone
-    const berlinTime = new Date().toLocaleString('en-US', { timeZone: 'Europe/Berlin' });
-    const currentDate = new Date(berlinTime);
-    const currentDay = currentDate.getDate();
+    // const berlinTime = new Date().toLocaleString('en-US', { timeZone: 'Europe/Berlin' });
+    // const currentDate = new Date(berlinTime);
+    // const currentDay = currentDate.getDate();
 
     // const testMode = process.env.TEST_MODE === 'true' ? true : false;
 
